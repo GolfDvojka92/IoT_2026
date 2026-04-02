@@ -10,7 +10,7 @@ IoT implementation of a smart baby room designed for automatic parameter regulat
 - System alerts/errors -> ``baby/alerts/system``
 
 ## Environment & Microclimate Management
-## SW-1: The system monitors and regulates ambient temperature to ensure infant safety and comfort.
+**SW-1**: The system monitors and regulates ambient temperature to ensure infant safety and comfort.
 - **SW-1.1**: Temperature threshold management (18°C > current_temp > 26°C, target_temp = 22°C)
     - **SW-1.1.1**: Automatic cooling cycle
         - **SW-1.1.1.1**: Initiate cooling when temperature exceeds 26°C
