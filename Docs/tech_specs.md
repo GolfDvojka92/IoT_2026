@@ -16,12 +16,12 @@ Monitor and regulate ambient temperature to ensure infant safety and comfort.
 ##### REQ 1.1.1: Automatic cooling cycle
 ###### REQ 1.1.1.1: Initiate cooling when temperature exceeds 26^o C
 ###### SOL 1.1.1.1:
-Temperature sensor (DHT22_Sim) publishes data to baby/sensor/temp.
+Temperature sensor (DHT22_Sim) publishes data to ``baby/sensor/temp``.
 
-Payload example: {"value": 27.3, "unit": "C"}.
+Payload example: ``{"value": 27.3, "unit": "C"}``.
 
-The logic engine subscribes to baby/sensor/#. 
-When the value exceeds 26°C, it publishes a COOLING_ON command to baby/actuator/fan/cmd via MQTT.
+The logic engine subscribes to ``baby/sensor/#``. 
+When the value exceeds 26°C, it publishes a ``COOLING_ON`` command to ``baby/actuator/fan/cmd`` via MQTT.
 
-Payload example: {"command": "COOLING_ON"}.
+Payload example: ``{"command": "COOLING_ON"}``.
 
