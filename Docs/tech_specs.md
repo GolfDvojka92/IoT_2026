@@ -16,10 +16,10 @@ IoT implementation of a smart baby room designed for automatic parameter regulat
         - **SW-1.1.1.1**: Initiate cooling when temperature exceeds 26°C
         - **ARCH**: Temperature sensor (DHT22_Sim) publishes data to ``baby/sensor/temp``.
             - Payload example: ``{"value": 27.3, "unit": "C"}``.
-        The logic engine subscribes to ``baby/sensor/``. 
-        When the value exceeds 26°C, it publishes a ``COOLING_ON`` command to ``baby/actuator/fan/cmd`` via MQTT.
+        - The logic engine subscribes to ``baby/sensor/``. 
+        - When the value exceeds 26°C, it publishes a ``COOLING_ON`` command to ``baby/actuator/fan/cmd`` via MQTT.
             - Payload example: ``{"command": "COOLING_ON"}``.
-=====
+- =====
 
     - SW-1.1.1.2: Maintain cooling until target temperature (22°C) is reached
     - **ARCH**:
