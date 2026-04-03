@@ -51,19 +51,19 @@ The system monitors and regulates ambient temperature to ensure infant safety an
     - **SW-1.2.3.1**: The system ensures delivery of critical alerts  
     - **ARCH**:  
         - Use QoS 1 for:  
-            - `baby/parent/notifications`  
-            - `baby/alerts/system`  
+			`baby/parent/notifications`  
+			`baby/alerts/system`  
         - Use QoS 0 for:  
-            - `baby/sensor/#`  
+			`baby/sensor/#`  
 
 ### **SW-1.3**: Mutual exclusion of heating and cooling  
 - **SW-1.3.1**: The system prevents simultaneous operation  
 - **ARCH**:  
     - The logic engine maintains an internal FSM:  
     - States:  
-        - `IDLE`  
-        - `HEATING`  
-        - `COOLING`  
+        `IDLE`  
+        `HEATING`  
+        `COOLING`  
     - Rules:  
         - If state = `COOLING` --> block `HEATER_ON` commands  
         - If state = `HEATING` --> block `COOLING_ON` commands  
