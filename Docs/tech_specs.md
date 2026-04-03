@@ -65,15 +65,15 @@ The system monitors and regulates ambient temperature to ensure infant safety an
         `HEATING`  
         `COOLING`  
     - Rules:  
-        - If state = `COOLING` --> block `HEATER_ON` commands  
-        - If state = `HEATING` --> block `COOLING_ON` commands  
+        - If state = `COOLING` &rarr block `HEATER_ON` commands  
+        - If state = `HEATING` &rarr block `COOLING_ON` commands  
 
 ### **SW-1.4**: Sensor data validation  
 - **SW-1.4.1**: The system rejects invalid readings  
 - **ARCH**:  
     - Incoming data from topic ``baby/sensor/temp`` is validated against realistic bounds (0°C to 50°C)  
-        - Valid values --> processed normally  
-        - Invalid values --> discarded  
+        - Valid values &rarr processed normally  
+        - Invalid values &rarr discarded  
     - In case of invalid input, a warning is published to topic ``baby/alerts/system``  
         - Payload example: `{"type": "WARNING", "code": "INVALID_TEMP”}`  
 
