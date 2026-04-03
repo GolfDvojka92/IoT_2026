@@ -12,25 +12,29 @@
 The system monitors and regulates ambient temperature to ensure infant safety and comfort  
 
 ### **SW-1.1**: Temperature threshold management (18°C > ``current_temp`` > 26°C, ``target_temp`` = 22°C)  
-- **SW-1.1.1**: Automatic cooling cycle  
-    - **SW-1.1.1.1**: The system initiates cooling when temperature exceeds 26°C  
+- **SW-1.1.1**: Temperature monitoring  
+    - **SW-1.1.1.1**: The system consistantly records and updates ``current_temp``  
     - **ARCH**:  
         - Temperature sensor (DHT22_Sim) publishes data to ``baby/sensor/temp``  
-            - Payload example: ``{"value": 273, "unit": "C"}``.  
-        - The logic engine subscribes to ``baby/sensor/``   
+            - Payload example: ``{"value": 27.3, "unit": "C"}``  
+- **SW-1.1.2**: Automatic cooling cycle  
+    - **SW-1.1.2.1**: The system initiates cooling when temperature exceeds 26°C  
+    - **ARCH**:  
+        - The logic engine subscribes to ``baby/sensor/#``   
+        - Temperature values are queried from ``baby/sensor/temp``  
         - When the value exceeds 26°C, it publishes a ``COOLING_ON`` command to ``baby/actuator/fan/cmd`` via MQTT  
             - Payload example: ``{"command": "COOLING_ON"}``  
-    - **SW-1.1.1.2**: The system maintains cooling until target temperature (22°C) is reached  
+    - **SW-1.1.2.2**: The system maintains cooling until target temperature (22°C) is reached  
     - **ARCH**:  
         - The logic engine continues monitoring temperature When the value of 22°C is reached, it publishes a ``COOLING_OFF`` command to ``baby/actuator/fan/cmd`` via MQTT.  
             - Payload example: ``{"command": "COOLING_OFF"}``  
-- **SW-1.1.2**: Automatic heating cycle  
-    - **SW-1.1.2.1**: The system initiates heating when temperature drops below 18°C  
+- **SW-1.1.3**: Automatic heating cycle  
+    - **SW-1.1.3.1**: The system initiates heating when temperature drops below 18°C  
     - **ARCH**:  
-        - Temperature values are consumed from ``baby/sensor/temp``  
+        - Temperature values are queried from ``baby/sensor/temp``  
         - If temperature falls below 18°C, it publishes ``HEATER_ON`` to ``baby/actuator/heater/cmd``  
             - Payload example: ``{"command": "HEATER_ON"}``  
-    - **SW-1.1.2.2**: The system maintains heating until target temperature (22°C) is reached  
+    - **SW-1.1.3.2**: The system maintains heating until target temperature (22°C) is reached  
     - **ARCH**:  
         - The logic engine continues monitoring temperature. When the value of 21°C is reached, it publishes a ``HEATER_OFF`` command to ``baby/actuator/heater/cmd`` via MQTT.  
             - Payload example: ``{"command": "HEATER_OFF"}``  
@@ -86,4 +90,3 @@ The system monitors and regulates ambient temperature to ensure infant safety an
             ``{"type": "ALERT", "code": "TEMP_HIGH”}``    
             ``{"type": "ALERT", "code": "TEMP_LOW”}``    
             ``{"type": "ALERT", "code": "TEMP_STUCK”}``    
-
