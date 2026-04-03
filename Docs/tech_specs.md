@@ -1,12 +1,12 @@
 # Smart Baby Monitoring Room  
 ## HLR: IoT implementation of a smart baby room designed for automatic parameter regulation and monitoring  
 ### MQTT Topic Structure Template  
-- Sensors publish -> ``baby/sensor/<type>``  
-- Logic engine subscribes -> ``baby/sensor/#``  
-- Actuator commands -> ``baby/actuator/<device>/cmd``  
-- Actuator state feedback -> ``baby/actuator/<device>/state``  
-- Parent notifications -> ``baby/parent/notifications``  
-- System alerts/errors -> ``baby/alerts/system``  
+- Sensors publish &rarr; ``baby/sensor/<type>``  
+- Logic engine subscribes &rarr; ``baby/sensor/#``  
+- Actuator commands &rarr; ``baby/actuator/<device>/cmd``  
+- Actuator state feedback &rarr; ``baby/actuator/<device>/state``  
+- Parent notifications &rarr; ``baby/parent/notifications``  
+- System alerts/errors &rarr; ``baby/alerts/system``  
   
 ## SW-1: Environment & Microclimate Management  
 The system monitors and regulates ambient temperature to ensure infant safety and comfort  
