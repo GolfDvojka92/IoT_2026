@@ -20,10 +20,7 @@ IoT implementation of a smart baby room designed for automatic parameter regulat
             - The logic engine subscribes to ``baby/sensor/``. 
             - When the value exceeds 26°C, it publishes a ``COOLING_ON`` command to ``baby/actuator/fan/cmd`` via MQTT.
                 - Payload example: ``{"command": "COOLING_ON"}``.
-- =====
-
-    - SW-1.1.1.2: Maintain cooling until target temperature (22°C) is reached
-    - **ARCH**:
-The logic engine continues monitoring temperature. When the value of 22°C is reached, it publishes a COOLING_OFF command to baby/actuator/fan/cmd via MQTT.
-
-- Payload example: {"command": "COOLING_OFF"}.
+        - **SW-1.1.1.2**: Maintain cooling until target temperature (22°C) is reached
+        - **ARCH**:
+            - The logic engine continues monitoring temperature. When the value of 22°C is reached, it publishes a ``COOLING_OFF`` command to ``baby/actuator/fan/cmd`` via MQTT.
+                - Payload example: ``{"command": "COOLING_OFF"}``.
