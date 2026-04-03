@@ -89,4 +89,37 @@ The system monitors and regulates ambient temperature to ensure infant safety an
         - Payload examples:    
             ``{"type": "ALERT", "code": "TEMP_HIGH”}``    
             ``{"type": "ALERT", "code": "TEMP_LOW”}``    
-            ``{"type": "ALERT", "code": "TEMP_STUCK”}``    
+            ``{"type": "ALERT", "code": "TEMP_STUCK”}``  
+
+## SW-2: Audio monitoring & Cry Detection
+Detect infant crying and notify parents while enabling automatic soothing actions  
+
+### **SW-2.1**: Cry detection system  
+- **SW-2.1.1**: The system detects baby crying using microphone input  
+    - **SW-2.1.1.1**: The system continuously monitors audio  
+    - **ARCH**:  
+        - Microphone (MIC_Sim) continuously captures audio and publishes data to topic baby/sensor/audio  
+            - Payload example: ``{"amplitude": 0.78, "frequency": 450, "unit": "Hz"}``  
+        - The logic engine subscribes to ``baby/sensor/#`` and processes incoming audio data in real time
+    - **SW-2.1.1.2**: Cry pattern recognition  
+    - **ARCH**:  
+        - The logic engine applies basic DSP techniques:  
+            - Amplitude thresholding  
+            - Frequency range filtering (typical baby cry range ~300–600 Hz)  
+            - Optional FFT analysis  
+        - Simulation uses prerecorded audio files:  
+            - crying.wav  
+            - silence.wav  
+        - If signal exceeds defined thresholds and matches crying pattern &rarr; CRY_DETECTED event is generated  
+    - **SW-2.1.1.3**: Cry persistence validation  
+    - **ARCH**:  
+        - To avoid false triggers, crying must persist for a defined duration (e.g., 3 seconds)  
+        - A `Cry_Timer` is started when threshold is exceeded:  
+            - If signal remains above threshold for ≥ 3 seconds &rarr; valid cry event  
+            - Otherwise → discard event  
+### **SW-2.2**: Parent notification  
+- **SW-2.2.1**: The system notifies parents when it detects crying  
+    - **SW-2.2.1.1**: The system sends a high-priority alert  
+    - **ARCH**:  
+        - Microphone (MIC_Sim) continuously captures audio and publishes data to topic baby/sensor/audio  
+            - Payload example: ``{"amplitude": 0.78, "frequency": 450, "unit": "Hz"}``  
