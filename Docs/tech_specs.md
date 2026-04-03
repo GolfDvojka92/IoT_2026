@@ -78,8 +78,6 @@ The system monitors and regulates ambient temperature to ensure infant safety an
         - Notifications are routed depending on type and recipient:
         - Notifications are published to `baby/parent/notifications`
             - Payload examples:
-                ```
-                {"type": "ALERT", "code": "TEMP_HIGH”}
-                {"type": "ALERT", "code": "TEMP_LOW”}
-                {"type": "ALERT", "code": "TEMP_STUCK”}
-                ```
+                ``{"type": "ALERT", "code": "TEMP_HIGH”}``
+                ``{"type": "ALERT", "code": "TEMP_LOW”}``
+                ``{"type": "ALERT", "code": "TEMP_STUCK”}``
