@@ -11,7 +11,7 @@
 ## SW-1: Environment & Microclimate Management  
 The system monitors and regulates ambient temperature to ensure infant safety and comfort  
 
-**SW-1.1**: Temperature threshold management (18°C > ``current_temp`` > 26°C, ``target_temp`` = 22°C)  
+### **SW-1.1**: Temperature threshold management (18°C > ``current_temp`` > 26°C, ``target_temp`` = 22°C)  
 - **SW-1.1.1**: Automatic cooling cycle  
     - **SW-1.1.1.1**: The system initiates cooling when temperature exceeds 26°C  
     - **ARCH**:  
@@ -35,7 +35,7 @@ The system monitors and regulates ambient temperature to ensure infant safety an
         - The logic engine continues monitoring temperature. When the value of 21°C is reached, it publishes a ``HEATER_OFF`` command to ``baby/actuator/heater/cmd`` via MQTT.  
             - Payload example: ``{"command": "HEATER_OFF"}``  
 
-**SW-1.2**: Parent notification and error handling  
+### **SW-1.2**: Parent notification and error handling  
 - **SW-1.2.1**: Critical temperature alert  
     - **SW-1.2.1.1**: The system notifies parents if unsafe temperature persists  
     - **ARCH**:  
@@ -56,7 +56,7 @@ The system monitors and regulates ambient temperature to ensure infant safety an
         - Use QoS 0 for:  
             - `baby/sensor/#`  
 
-**SW-1.3**: Mutual exclusion of heating and cooling  
+### **SW-1.3**: Mutual exclusion of heating and cooling  
 - **SW-1.3.1**: The system prevents simultaneous operation  
 - **ARCH**:  
     - The logic engine maintains an internal FSM:  
@@ -68,7 +68,7 @@ The system monitors and regulates ambient temperature to ensure infant safety an
         - If state = `COOLING` --> block `HEATER_ON` commands  
         - If state = `HEATING` --> block `COOLING_ON` commands  
 
-**SW-1.4**: Sensor data validation  
+### **SW-1.4**: Sensor data validation  
 - **SW-1.4.1**: The system rejects invalid readings  
 - **ARCH**:  
     - Incoming data from topic ``baby/sensor/temp`` is validated against realistic bounds (0°C to 50°C)  
@@ -77,7 +77,7 @@ The system monitors and regulates ambient temperature to ensure infant safety an
     - In case of invalid input, a warning is published to topic ``baby/alerts/system``  
         - Payload example: `{"type": "WARNING", "code": "INVALID_TEMP”}`  
 
-**SW-1.5**: Granular notification system  
+### **SW-1.5**: Granular notification system  
 - **SW-1.5.1**: The system provides detailed alerts  
 - **ARCH**:  
     - Notifications are routed depending on type and recipient:  
