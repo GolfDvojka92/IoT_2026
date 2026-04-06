@@ -26,7 +26,7 @@ The system monitors and regulates ambient temperature to ensure infant safety an
             - Payload example: ``{"command": "COOLING_ON"}``  
     - **SW-1.1.2.2**: The system maintains cooling until target temperature (22°C) is reached  
     - **ARCH**:  
-        - The logic engine continues monitoring temperature When the value of 22°C is reached, it publishes a ``COOLING_OFF`` command to ``baby/actuator/fan/cmd`` via MQTT.  
+        - The logic engine continues monitoring temperature When the value of 22°C is reached, it publishes a ``COOLING_OFF`` command to ``baby/actuator/fan/cmd`` via MQTT  
             - Payload example: ``{"command": "COOLING_OFF"}``  
 - **SW-1.1.3**: Automatic heating cycle  
     - **SW-1.1.3.1**: The system initiates heating when temperature drops below 18°C  
@@ -36,7 +36,7 @@ The system monitors and regulates ambient temperature to ensure infant safety an
             - Payload example: ``{"command": "HEATER_ON"}``  
     - **SW-1.1.3.2**: The system maintains heating until target temperature (22°C) is reached  
     - **ARCH**:  
-        - The logic engine continues monitoring temperature. When the value of 21°C is reached, it publishes a ``HEATER_OFF`` command to ``baby/actuator/heater/cmd`` via MQTT.  
+        - The logic engine continues monitoring temperature. When the value of 21°C is reached, it publishes a ``HEATER_OFF`` command to ``baby/actuator/heater/cmd`` via MQTT  
             - Payload example: ``{"command": "HEATER_OFF"}``  
 
 ### **SW-1.2**: Parent notification and error handling  
@@ -127,8 +127,8 @@ Detect infant crying and notify parents while enabling automatic soothing action
     - **SW-2.2.2**: Notification throttling  
     - **SW-2.2.2.1**: Prevent notification spam  
     - **ARCH**:  
-        - After sending a cry alert, a cooldown timer (e.g., 30 seconds) is activated.  
-        - During this period, new alerts are suppressed unless crying stops and reoccurs.  
+        - After sending a cry alert, a cooldown timer (e.g., 30 seconds) is activated  
+        - During this period, new alerts are suppressed unless crying stops and reoccurs  
 
 ### **SW-2.3**: Automatic soothing response  
 - **SW-2.3.1**: Trigger soothing mechanisms  
@@ -142,7 +142,7 @@ Detect infant crying and notify parents while enabling automatic soothing action
             - Payload example: ``{"command": "MUSIC_ON"}``  
     - **SW-2.3.1.3**: Define soothing duration  
     - **ARCH**:  
-        - Soothing actions run for a predefined duration (e.g., 2 minutes).  
+        - Soothing actions run for a predefined duration (e.g., 2 minutes)  
         - After timeout, system publishes:  
             ``{"command": "MUSIC_OFF"}``  
             ``{"command": "MOTOR_OFF"}``  
@@ -151,14 +151,14 @@ Detect infant crying and notify parents while enabling automatic soothing action
 - **SW-2.4.1**: Avoid triggering on environmental noise  
     - **SW-2.4.1.1**: Noise filtering  
     - **ARCH**:  
-        - Ignore signals outside expected frequency range (e.g., <300 Hz or >600 Hz).  
+        - Ignore signals outside expected frequency range (e.g., <300 Hz or >600 Hz)  
     - **SW-2.4.1.2**: Multi-condition validation  
     - **ARCH**:  
         - Cry detection requires:  
             - Amplitude threshold exceeded  
             - Frequency in valid range  
             - Persistence ≥ 3 seconds  
-        - All conditions must be satisfied to trigger event.  
+        - All conditions must be satisfied to trigger event  
 
 ### **SW-2.5**: Sensor failure and error handling  
 - **SW-2.5.1**: Detect missing audio data  
@@ -190,7 +190,7 @@ Detect infant crying and notify parents while enabling automatic soothing action
         - Transition to `IDLE` after soothing completes  
 
 ## SW-3: Motorized Soothing System
-Provide physical soothing through controlled motion.  
+Provide physical soothing through controlled motion  
 
 ### **SW-3.1**: Motor control  
 - **SW-3.1.1**: Activate motor on demand or cry detection  
@@ -202,28 +202,28 @@ Provide physical soothing through controlled motion.
     - **ARCH**:  
         - Parent application publishes command to ``baby/control/motor``  
             - Payload example: ``{"command": "MOTOR_ON", "duration": 300}``  
-        - Logic engine subscribes to ``baby/control/motor`` and forwards validated commands to ``baby/actuator/motor/cmd``.  
+        - Logic engine subscribes to ``baby/control/motor`` and forwards validated commands to ``baby/actuator/motor/cmd``  
     - **SW-3.1.1.3**: Manual deactivation  
     - **ARCH**:  
         - Parent can stop motor at any time by publishing ``{"command": "MOTOR_OFF"}`` to ``baby/control/motor``  
 - **SW-3.1.2**: Safe operation duration  
     - **SW-3.1.2.1**: Timed motor operation  
     - **ARCH**:  
-        - When motor is activated, a ``Motor_Timer`` is started (default: 5 minutes).  
+        - When motor is activated, a ``Motor_Timer`` is started (default: 5 minutes)  
         - After timeout, logic engine publishes ``{"command": "MOTOR_OFF"}`` to ``baby/actuator/motor/cmd``  
     - **SW-3.1.2.2**: Configurable duration  
     - **ARCH**:  
-        - If duration is provided via parent command, system overrides default timer.  
+        - If duration is provided via parent command, system overrides default timer  
         - Constraints:  
             - Minimum: 30 seconds  
             - Maximum: 10 minutes  
-        - Invalid values are rejected.  
+        - Invalid values are rejected  
 
 ### **SW-3.2**: Safety constraints  
 - **SW-3.2.1**: Prevent continuous operation  
     - **SW-3.2.1.1**: Cooldown enforcement  
     - **ARCH**:  
-        - After motor stops, a cooldown timer (e.g., 2 minutes) is activated.  
+        - After motor stops, a cooldown timer (e.g., 2 minutes) is activated  
         - During cooldown:  
             - All MOTOR_ON commands are ignored  
             - Warning can be published if command is attempted  
@@ -231,7 +231,7 @@ Provide physical soothing through controlled motion.
 - **SW-3.2.2**: Limit excessive usage  
     - **SW-3.2.2.1**: Maximum activation frequency  
     - **ARCH**:  
-        - System limits number of activations (e.g., max 5 cycles per hour).  
+        - System limits number of activations (e.g., max 5 cycles per hour)  
         - If exceeded &rarr; publish to ``baby/alerts/system``:  
             ``{"type": "ALERT", "code": "MOTOR_OVERUSE"}``  
 
@@ -286,7 +286,7 @@ Provide physical soothing through controlled motion.
 			`baby/control/motor`  
 
 ## SW-4: Audio Playback System
-Provide calming audio to assist infant sleep.  
+Provide calming audio to assist infant sleep  
 
 ### **SW-4.1**: Music playback control  
 - **SW-4.1.1**: Play music during soothing  
@@ -300,7 +300,7 @@ Provide calming audio to assist infant sleep.
             - Payload examples:  
                 ``{"command": "MUSIC_ON"}``  
                 ``{"command": "MUSIC_OFF"}``  
-        - Logic engine validates and forwards commands to ``baby/actuator/speaker/cmd``.  
+        - Logic engine validates and forwards commands to ``baby/actuator/speaker/cmd``  
 - **SW-4.1.2**: Stop music when soothing ends  
     - **SW-4.1.2.1**: Automatic playback stop  
     - **ARCH**:  
@@ -314,8 +314,8 @@ Provide calming audio to assist infant sleep.
 - **SW-4.2.1**: Maintain safe audio levels  
     - **SW-4.2.1.1**: Enforce volume threshold  
     - **ARCH**:  
-        - System limits volume to safe level (<50 dB equivalent).  
-        - Any command exceeding threshold is automatically clamped to maximum allowed value.  
+        - System limits volume to safe level (<50 dB equivalent)  
+        - Any command exceeding threshold is automatically clamped to maximum allowed value  
     - **SW-4.2.1.2**: Volume adjustment via parent control  
     - **ARCH**:  
         - Parent can set volume via ``baby/control/speaker``  
@@ -323,7 +323,7 @@ Provide calming audio to assist infant sleep.
         - Constraints:  
             - Minimum: 10 dB  
             - Maximum: 50 dB  
-        - Invalid values are rejected.  
+        - Invalid values are rejected  
 
 ### **SW-4.3**: Playback configuration  
 - **SW-4.3.1**: Select audio content  
@@ -338,7 +338,7 @@ Provide calming audio to assist infant sleep.
 - **SW-4.3.2**: Loop playback  
     - **SW-4.3.2.1**: Continuous playback mode  
     - **ARCH**:  
-        - If enabled, selected audio track loops until stop condition is triggered.  
+        - If enabled, selected audio track loops until stop condition is triggered  
 
 ### **SW-4.4**: State management  
 - **SW-4.4.1**: Maintain speaker state machine  
@@ -390,7 +390,7 @@ Provide calming audio to assist infant sleep.
 			`baby/control/speaker`  
 
 ## SW-5: Light Monitoring & Ambient Lighting Control
-Maintain appropriate lighting conditions based on ambient light levels.  
+Maintain appropriate lighting conditions based on ambient light levels  
 
 ### **SW-5.1**: Light sensing  
 - **SW-5.1.1**: Detect ambient light level  
@@ -398,7 +398,7 @@ Maintain appropriate lighting conditions based on ambient light levels.
     - **ARCH**:  
         - Light sensor (LDR_Sim) continuously measures ambient light and publishes data to ``baby/sensor/light``  
             - Payload example: ``{"value": 120, "unit": "lux"}``  
-        - Logic engine subscribes to ``baby/sensor/#`` and processes incoming light data in real time.  
+        - Logic engine subscribes to ``baby/sensor/#`` and processes incoming light data in real time  
     - **SW-5.1.1.2**: Data validation  
     - **ARCH**:  
         - Incoming light values are validated:  
@@ -419,16 +419,16 @@ Maintain appropriate lighting conditions based on ambient light levels.
 - **SW-5.2.2**: Avoid complete darkness  
     - **SW-5.2.2.1**: Minimum brightness enforcement  
     - **ARCH**:  
-        - System ensures brightness never drops below minimum threshold (e.g., 10%) during NIGHT state.  
+        - System ensures brightness never drops below minimum threshold (e.g., 10%) during NIGHT state  
 
 ### **SW-5.3**: Daylight adaptation  
 - **SW-5.3.1**: Gradual light reduction at sunrise  
     - **SW-5.3.1.1**: Detect increasing light levels  
     - **ARCH**:  
-        - If ambient light rises above threshold (e.g., >150 lux), system transitions to DAY state.  
+        - If ambient light rises above threshold (e.g., >150 lux), system transitions to DAY state  
     - **SW-5.3.1.2**: Gradual lamp dimming  
     - **ARCH**:  
-        - Brightness is gradually reduced using PWM steps (e.g., every 5 seconds decrease by 5%).  
+        - Brightness is gradually reduced using PWM steps (e.g., every 5 seconds decrease by 5%)  
     - **SW-5.3.1.3**: Turn off lamp in daylight  
     - **ARCH**:  
         - When brightness reaches 0%, publish ``{"command": "LIGHT_OFF"}`` to ``baby/actuator/lamp/cmd``  
@@ -437,7 +437,7 @@ Maintain appropriate lighting conditions based on ambient light levels.
 - **SW-5.4.1**: Avoid abrupt lighting changes  
     - **SW-5.4.1.1**: PWM ramp control  
     - **ARCH**:  
-        - All brightness transitions (increase/decrease) are implemented gradually over time using PWM ramping (e.g., 1–2 seconds per step).  
+        - All brightness transitions (increase/decrease) are implemented gradually over time using PWM ramping (e.g., 1–2 seconds per step)  
 
 ### **SW-5.5**: Manual control  
 - **SW-5.5.1**: Parent override  
@@ -498,7 +498,7 @@ Maintain appropriate lighting conditions based on ambient light levels.
 			`baby/control/lamp`  
 
 ## SW-6: System Integration & Coordination
-Ensure coordinated operation between all subsystems.  
+Ensure coordinated operation between all subsystems  
 
 ### **SW-6.1**: Event-based coordination  
 - **SW-6.1.1**: Synchronize actuators  
@@ -530,7 +530,7 @@ Ensure coordinated operation between all subsystems.
             - ``baby/sensor/audio``  
             - ``baby/sensor/light``  
             - other relevant sensors  
-        - It continuously monitors all events in real-time.  
+        - It continuously monitors all events in real-time  
     - **SW-6.2.1.2**: Publish coordinated actuator commands  
     - **ARCH**:  
         - Based on event rules, publishes commands to:  
@@ -538,10 +538,10 @@ Ensure coordinated operation between all subsystems.
             - ``baby/actuator/speaker/cmd``  
             - ``baby/actuator/lamp/cmd``  
             - ``baby/actuator/heater/cmd`` / ``baby/actuator/fan/cmd``  
-        - All commands are validated and rate-limited as needed.  
+        - All commands are validated and rate-limited as needed  
 - **SW-6.2.2**: Conflict detection  
 - **ARCH**:  
-    - Logic engine detects conflicting commands (e.g., heating + cooling, motor during safety lock) and resolves according to priority rules.  
+    - Logic engine detects conflicting commands (e.g., heating + cooling, motor during safety lock) and resolves according to priority rules  
     - If conflict cannot be resolved &rarr; publish alert:  
         ``{"type": "ERROR", "code": "CONFLICT_DETECTED"}``  
 
@@ -553,7 +553,7 @@ Ensure coordinated operation between all subsystems.
             1. Safety &rarr; temperature extremes, sensor failures  
             2. Cry detection &rarr; soothing actions (motor + music)  
             3. Comfort &rarr; lighting adjustments, optional music  
-        - Logic engine ensures higher-priority events preempt lower-priority ones.  
+        - Logic engine ensures higher-priority events preempt lower-priority ones  
 - **SW-6.3.2**: Emergency preemption  
     - **SW-6.3.2.1**: Interrupt ongoing actions if safety is triggered  
     - **ARCH**:  
@@ -565,7 +565,7 @@ Ensure coordinated operation between all subsystems.
 ### **SW-6.4**: Monitoring and logging  
 - **SW-6.4.1**: System-wide event logging  
 - **ARCH**:  
-    - All sensor readings, actuator commands, and detected conflicts are logged to a central store for monitoring and debugging.  
+    - All sensor readings, actuator commands, and detected conflicts are logged to a central store for monitoring and debugging  
 - **SW-6.4.2**: Feedback reporting  
 - **ARCH**:  
     - Current state of all actuators published periodically:  
