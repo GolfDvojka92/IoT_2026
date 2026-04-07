@@ -5,7 +5,8 @@
 - Logic engine subscribes &rarr; ``baby/sensor/#``  
 - Actuator commands &rarr; ``baby/actuator/<device>/cmd``  
 - Actuator state feedback &rarr; ``baby/actuator/<device>/state``  
-- Parent notifications &rarr; ``baby/parent/notifications``  
+- Parent notifications &rarr; ``baby/parent/notifications``
+- Parent control commands &rarr; ``baby/control/<device>``
 - System alerts/errors &rarr; ``baby/alerts/system``  
   
 ## SW-1: Environment & Microclimate Management  
