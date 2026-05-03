@@ -1,0 +1,44 @@
+PROJECT STRUCTURE:
+smart_baby_room/
+│
+├── shared/
+├────── mqtt_module.py
+├────── ssdp_module.py
+│
+├── sensors/
+├────── temperature_sensor.py
+├────── light_sensor.py
+├────── microphone.py
+│
+├── actuators/
+├────── fan.py
+├────── heater.py
+├────── motor.py
+├────── speaker.py
+├────── lamp.py
+│
+├── controller/
+├────── controller.py
+├────── auto_logic.py
+│
+├── parent_app/
+└────── parent_cli.py
+
+PHYSICAL ARCHITECTURE:
+Local Network (WiFi / Ethernet)
+│
+├── Controller
+│     Runs: Mosquitto broker, controller.py
+│     Connected to: Network
+│
+├── Sensor Node
+│     Runs: temperature_sensor.py, light_sensor.py, microphone.py
+│     Connected to: temperature sensor, light sensor, microphone
+│
+├── Actuator Node (Climate Control)
+│     Runs: fan.py, heater.py
+│     Connected to: fan relay, heater relay
+│
+└── Actuator Node B (Cradle Electronics)
+      Runs: lamp.py, speaker.py, motor.py
+      Connected to: lamp relay, speaker module, motor driver
