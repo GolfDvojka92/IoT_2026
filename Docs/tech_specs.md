@@ -6,8 +6,73 @@
 - Actuator commands &rarr; ``baby/actuator/<device>/cmd``  
 - Actuator state feedback &rarr; ``baby/actuator/<device>/state``  
 - Parent notifications &rarr; ``baby/parent/notifications``
-- Parent control commands &rarr; ``baby/control/<device>``
-- System alerts/errors &rarr; ``baby/alerts/system``  
+- Parent control commands &rarr; ``baby/parent/commands``
+
+## SW-0: Network Discovery & Device Registration
+Enable automatic discovery of controller and IoT devices within the local network before operational communication is established 
+
+### **SW-0.1**: Device advertisement  
+- **SW-0.1.1**: Automatic presence announcement 
+    - **SW-0.1.1.1**: Each device announces its presence when joining the network 
+    - **ARCH**: 
+        - Sensors and actuators multicast an SSDP `NOTIFY (ssdp:alive)` message over UDP  
+        - Announcement includes:  
+            - unique device identifier  
+            - device type  
+            - location information  
+            - advertisement lifetime  
+        - This allows the controller and other network participants to detect newly available devices  
+
+- **SW-0.1.2**: Departure announcement 
+    - **SW-0.1.2.1**: Device announces shutdown before disconnecting 
+    - **ARCH**: 
+        - Before leaving the network, device multicasts `NOTIFY (ssdp:byebye)`  
+        - This informs the controller that the device is no longer available  
+
+### **SW-0.2**: Controller discovery procedure  
+- **SW-0.2.1**: Active device search 
+    - **SW-0.2.1.1**: Controller actively searches for available devices on the network 
+    - **ARCH**: 
+        - Controller multicasts an SSDP `M-SEARCH` request  
+        - Devices matching the search criteria respond with discovery information  
+        - Controller uses these responses to identify available sensors and actuators  
+
+- **SW-0.2.2**: Passive discovery monitoring 
+    - **SW-0.2.2.1**: Controller continuously listens for SSDP announcements 
+    - **ARCH**: 
+        - Controller monitors SSDP multicast traffic  
+        - Newly advertised devices are detected dynamically  
+        - Device shutdown announcements are used to detect network departures  
+
+### **SW-0.3**: Device registration  
+- **SW-0.3.1**: Registration of discovered devices 
+    - **SW-0.3.1.1**: Controller stores information about available devices 
+    - **ARCH**: 
+        - After discovery, controller registers:  
+            - device identifier  
+            - device type  
+            - device availability state  
+        - Registered devices become available for system coordination and monitoring  
+
+- **SW-0.3.2**: Dynamic availability management 
+    - **SW-0.3.2.1**: System maintains updated device presence information 
+    - **ARCH**: 
+        - Devices announced with `ssdp:alive` are marked active  
+        - Devices announcing `ssdp:byebye` are marked inactive  
+        - Unexpected communication loss may also trigger device removal  
+
+### **SW-0.4**: Operational communication bootstrap  
+- **SW-0.4.1**: Transition to MQTT communication 
+    - **SW-0.4.1.1**: After discovery, devices establish operational communication channels 
+    - **ARCH**: 
+        - SSDP is used only for discovery and network presence management  
+        - After successful discovery, devices exchange operational data using MQTT  
+        - MQTT channels are used for:  
+            - sensor telemetry  
+            - actuator commands  
+            - state reporting  
+            - alerts and notifications  
+
   
 ## SW-1: Environment & Microclimate Management  
 The system monitors and regulates ambient temperature to ensure infant safety and comfort  
@@ -50,14 +115,13 @@ The system monitors and regulates ambient temperature to ensure infant safety an
     - **SW-1.2.2.1**: The system detects missing sensor data  
     - **ARCH**:  
         - A watchdog timer monitors incoming messages on ``baby/sensor/temp``  
-        - If no data is received within 30 seconds, the system publishes a payload on topic ``baby/alerts/system``  
+        - If no data is received within 30 seconds, the system publishes a payload on topic ``baby/parent/notifications``  
             - Payload example: ``{"type": "ERROR", "code": "SENSOR_OFFLINE"}``  
 - **SW-1.2.3**: Communication reliability  
     - **SW-1.2.3.1**: The system ensures delivery of critical alerts  
     - **ARCH**:  
         - Use QoS 1 for:  
-			`baby/parent/notifications`  
-			`baby/alerts/system`  
+			`baby/parent/notifications`   
         - Use QoS 0 for:  
 			`baby/sensor/#`  
 
@@ -79,7 +143,7 @@ The system monitors and regulates ambient temperature to ensure infant safety an
     - Incoming data from topic ``baby/sensor/temp`` is validated against realistic bounds (0°C to 50°C)  
         - Valid values &rarr; processed normally  
         - Invalid values &rarr; discarded  
-    - In case of invalid input, a warning is published to topic ``baby/alerts/system``  
+    - In case of invalid input, a warning is published to topic ``baby/parent/notifications``  
         - Payload example: `{"type": "WARNING", "code": "INVALID_TEMP"}`  
 
 ### **SW-1.5**: Granular notification system  
@@ -165,7 +229,7 @@ Detect infant crying and notify parents while enabling automatic soothing action
 - **SW-2.5.1**: Detect missing audio data  
     - **SW-2.5.1.1**: Audio stream watchdog  
     - **ARCH**:  
-        - If no data is received on ``baby/sensor/audio`` within 30 seconds &rarr; publish to ``baby/alerts/system``  
+        - If no data is received on ``baby/sensor/audio`` within 30 seconds &rarr; publish to ``baby/parent/notifications``  
             - Payload example: ``{"type": "ERROR", "code": "AUDIO_SENSOR_OFFLINE"}``  
 
 ### **SW-2.6**: Communication reliability  
@@ -174,7 +238,6 @@ Detect infant crying and notify parents while enabling automatic soothing action
     - Use QoS levels:  
         - QoS 1 for:  
 			`baby/parent/notifications`  
-			`baby/alerts/system`  
         - QoS 0 for:  
 			`baby/sensor/audio`  
 
@@ -201,12 +264,12 @@ Provide physical soothing through controlled motion
             - Payload example: ``{"command": "MOTOR_ON", "source": "AUTO"}``  
     - **SW-3.1.1.2**: Manual activation (parent control)  
     - **ARCH**:  
-        - Parent application publishes command to ``baby/control/motor``  
+        - Parent application publishes command to ``baby/parent/commands``  
             - Payload example: ``{"command": "MOTOR_ON", "duration": 300}``  
-        - Logic engine subscribes to ``baby/control/motor`` and forwards validated commands to ``baby/actuator/motor/cmd``  
+        - Logic engine subscribes to ``baby/parent/commands`` and forwards validated commands to ``baby/actuator/motor/cmd``  
     - **SW-3.1.1.3**: Manual deactivation  
     - **ARCH**:  
-        - Parent can stop motor at any time by publishing ``{"command": "MOTOR_OFF"}`` to ``baby/control/motor``  
+        - Parent can stop motor at any time by publishing ``{"command": "MOTOR_OFF"}`` to ``baby/parent/commands``  
 - **SW-3.1.2**: Safe operation duration  
     - **SW-3.1.2.1**: Timed motor operation  
     - **ARCH**:  
@@ -233,7 +296,7 @@ Provide physical soothing through controlled motion
     - **SW-3.2.2.1**: Maximum activation frequency  
     - **ARCH**:  
         - System limits number of activations (e.g., max 5 cycles per hour)  
-        - If exceeded &rarr; publish to ``baby/alerts/system``:  
+        - If exceeded &rarr; publish to ``baby/parent/notifications``:  
             ``{"type": "ALERT", "code": "MOTOR_OVERUSE"}``  
 
 ### **SW-3.3**: State management  
@@ -270,7 +333,7 @@ Provide physical soothing through controlled motion
 ### **SW-3.5**: Data validation  
 - **SW-3.5.1**: Validate incoming commands  
 - **ARCH**:  
-    - Commands received on ``baby/control/motor`` are validated:  
+    - Commands received on ``baby/parent/commands`` are validated:  
         - Allowed commands: MOTOR_ON, MOTOR_OFF  
         - Duration must be within valid bounds  
     - Invalid commands &rarr; discarded and reported:  
@@ -282,9 +345,8 @@ Provide physical soothing through controlled motion
     - Use QoS levels:  
         - QoS 1 for:  
 			`baby/actuator/motor/cmd`  
-			`baby/alerts/system`  
         - QoS 0 for:  
-			`baby/control/motor`  
+			`baby/parent/commands`  
 
 ## SW-4: Audio Playback System
 Provide calming audio to assist infant sleep  
@@ -297,7 +359,7 @@ Provide calming audio to assist infant sleep
             - Payload example: ``{"command": "MUSIC_ON", "source": "AUTO"}``  
     - **SW-4.1.1.2**: Manual playback control  
     - **ARCH**:  
-        - Parent application can control playback via topic ``baby/control/speaker``  
+        - Parent application can control playback via topic `baby/parent/commands``  
             - Payload examples:  
                 ``{"command": "MUSIC_ON"}``  
                 ``{"command": "MUSIC_OFF"}``  
@@ -319,7 +381,7 @@ Provide calming audio to assist infant sleep
         - Any command exceeding threshold is automatically clamped to maximum allowed value  
     - **SW-4.2.1.2**: Volume adjustment via parent control  
     - **ARCH**:  
-        - Parent can set volume via ``baby/control/speaker``  
+        - Parent can set volume via ``baby/parent/commands``  
             - Payload example: ``{"command": "SET_VOLUME", "value": 40}``  
         - Constraints:  
             - Minimum: 10 dB  
@@ -374,7 +436,7 @@ Provide calming audio to assist infant sleep
 ### **SW-4.6**: Data validation  
 - **SW-4.6.1**: Validate incoming commands  
 - **ARCH**:  
-    - Commands from ``baby/control/speaker`` are validated:  
+    - Commands from ``baby/parent/commands`` are validated:  
         - Allowed commands: MUSIC_ON, MUSIC_OFF, SET_VOLUME, SET_TRACK  
         - Parameters must be within valid bounds  
     - Invalid commands &rarr; rejected and logged:  
@@ -385,10 +447,9 @@ Provide calming audio to assist infant sleep
 - **ARCH**:  
     - Use QoS levels:  
         - QoS 1 for:  
-			`baby/actuator/speaker/cmd`  
-			`baby/alerts/system`  
+			`baby/actuator/speaker/cmd`   
         - QoS 0 for:  
-			`baby/control/speaker`  
+			`baby/parent/commands`  
 
 ## SW-5: Light Monitoring & Ambient Lighting Control
 Maintain appropriate lighting conditions based on ambient light levels  
@@ -405,7 +466,7 @@ Maintain appropriate lighting conditions based on ambient light levels
         - Incoming light values are validated:  
             - Valid range: 0–1000 lux  
             - Invalid values &rarr; discarded  
-        - On invalid input, publish warning ``{"type": "WARNING", "code": "INVALID_LIGHT_VALUE"}`` to ``baby/alerts/system``  
+        - On invalid input, publish warning ``{"type": "WARNING", "code": "INVALID_LIGHT_VALUE"}`` to ``baby/parent/notifications``  
 
 ### **SW-5.2**: Night lighting control  
 - **SW-5.2.1**: Turn on lamp in low light conditions  
@@ -444,7 +505,7 @@ Maintain appropriate lighting conditions based on ambient light levels
 - **SW-5.5.1**: Parent override  
     - **SW-5.5.1.1**: Manual ON/OFF control  
     - **ARCH**:  
-        - Parent can control lamp via ``baby/control/lamp``  
+        - Parent can control lamp via ``baby/parent/commands``  
             - Payload examples:  
                 ``{"command": "LIGHT_ON"}``  
                 ``{"command": "LIGHT_OFF"}``  
@@ -493,10 +554,9 @@ Maintain appropriate lighting conditions based on ambient light levels
     - Use QoS levels:  
         - QoS 1 for:  
 			`baby/actuator/lamp/cmd`  
-			`baby/alerts/system`  
         - QoS 0 for:  
 			`baby/sensor/light`  
-			`baby/control/lamp`  
+			`baby/parent/commands`  
 
 ## SW-6: System Integration & Coordination
 Ensure coordinated operation between all subsystems  
