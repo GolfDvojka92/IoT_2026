@@ -45,8 +45,19 @@ class Controller:
             # SIMPLE RULE ENGINE
             if msg.topic == "baby/sensor/microphone":
                 if payload.get("sound") == "CRYING":
-                    print("[DECISION] Baby crying -> turning ON lamp + speaker")
+                    print("[DECISION] Baby crying -> turning ON fan")
 
+                    # TEST COMMAND TO FAN
+                    command = {
+                        "state": "ON"
+                    }
+
+                    self.client.publish(
+                        "baby/actuator/fan/cmd",
+                        json.dumps(command)
+                    )
+
+                    print("[CONTROLLER] Sent FAN ON command")
         except Exception as e:
             print("Error:", e)
 
