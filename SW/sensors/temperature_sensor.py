@@ -21,10 +21,8 @@ class TemperatureSensor:
         # Set up MQTT
         self.mqtt = MQTTModule(
             device_id     = DEVICE_ID,
-            subscriptions = [TOPIC_CMD]
+            subscriptions = []
         )
-        # Override the base message handler with our own
-        self.mqtt._on_message = self._on_command
 
         # Set up SSDP — so the controller can discover us on the network
         self.ssdp = SSDPModule(

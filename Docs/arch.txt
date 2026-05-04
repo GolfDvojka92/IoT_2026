@@ -35,7 +35,7 @@ Local Network (WiFi / Ethernet)
 │     Runs: temperature_sensor.py, light_sensor.py, microphone.py
 │     Connected to: temperature sensor, light sensor, microphone
 │
-├── Actuator Node (Climate Control)
+├── Actuator Node A (Climate Control)
 │     Runs: fan.py, heater.py
 │     Connected to: fan relay, heater relay
 │
