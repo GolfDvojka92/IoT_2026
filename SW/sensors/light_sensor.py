@@ -4,18 +4,18 @@ from shared.mqtt_module import MQTTModule
 from shared.ssdp_module import SSDPModule
 
 # Publishes to
-TOPIC_READING   = "baby/sensor/temperature"         # periodic temperature readings
-TOPIC_STATE     = "baby/sensor/temperature/state"   # our own online/offline status
+TOPIC_READING   = "baby/sensor/light"         # periodic temperature readings
+TOPIC_STATE     = "baby/sensor/light/state"   # our own online/offline status
 
 # ---------------------------------#
 #              CONFIG              #
 # ---------------------------------#
-DEVICE_ID        = "temperature_sensor_01"
+DEVICE_ID        = "light_sensor_01"
 PUBLISH_INTERVAL = 10                                           # seconds between readings in normal operation
-DEVICE_TYPE      = "urn:babymonitor:device:TemperatureSensor:1"
+DEVICE_TYPE      = "urn:babymonitor:device:LightSensor:1"
 DEVICE_LOCATION  = "http://192.168.1.10:8080/description.xml"   # placeholder
 
-class TemperatureSensor:
+class LightSensor:
 
     def __init__(self):
         # Set up MQTT
@@ -78,32 +78,32 @@ class TemperatureSensor:
     # ---------------------------------#
     def _reading_loop(self):
         while self._running:
-            temperature = self._read_temperature()
-            self._publish_reading(temperature)
+            light = self._read_light()
+            self._publish_reading(light)
             time.sleep(PUBLISH_INTERVAL)
 
     # ---------------------------------#
     #      Sensor read (simulation)    #
     # ---------------------------------#
-    def _read_temperature(self) -> float:
+    def _read_light(self) -> float:
         # TODO: replace with actual sensor reading
         return 22.5  # placeholder
 
     # ---------------------------------#
     #            Publishing            #
     # ---------------------------------#
-    def _publish_reading(self, temperature: float):
+    def _publish_reading(self, light: float):
         payload = {
             "device_id":   DEVICE_ID,
-            "temperature": temperature,
-            "unit":        "C",
+            "light": light,
+            "unit":        "lux",
             "timestamp":   time.time()
         }
         self.mqtt.publish(TOPIC_READING, payload)
-        print(f"[{DEVICE_ID}] Published reading: {temperature}°C")
+        print(f"[{DEVICE_ID}] Published reading: {light}°C")
 
 if __name__ == "__main__":
-    sensor = TemperatureSensor()
+    sensor = LightSensor()
     try:
         sensor.start()
     except KeyboardInterrupt:
