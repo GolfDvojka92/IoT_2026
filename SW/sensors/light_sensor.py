@@ -1,3 +1,4 @@
+import random
 import time
 import json
 from shared.mqtt_module import MQTTModule
@@ -87,7 +88,7 @@ class LightSensor:
     # ---------------------------------#
     def _read_light(self) -> float:
         # TODO: replace with actual sensor reading
-        return 22.5  # placeholder
+        return random.randint(0, 1000) # placeholder
 
     # ---------------------------------#
     #            Publishing            #
@@ -100,7 +101,8 @@ class LightSensor:
             "timestamp":   time.time()
         }
         self.mqtt.publish(TOPIC_READING, payload)
-        print(f"[{DEVICE_ID}] Published reading: {light}°C")
+        print(f"[{DEVICE_ID}] Published reading: {light}")
+
 
 if __name__ == "__main__":
     sensor = LightSensor()
