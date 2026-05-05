@@ -66,6 +66,7 @@ run-all:
 	gnome-terminal -- bash -c "$(PY) -m actuators.heater; exec bash"
 	gnome-terminal -- bash -c "$(PY) -m actuators.lamp; exec bash"
 	gnome-terminal -- bash -c "$(PY) -m actuators.speaker; exec bash"
+	gnome-terminal -- bash -c "$(PY) -m actuators.toy; exec bash"
 
 	gnome-terminal -- bash -c "$(PY) -m sensors.temperature_sensor; exec bash"
 	gnome-terminal -- bash -c "$(PY) -m sensors.light_sensor; exec bash"
