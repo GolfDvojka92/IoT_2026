@@ -73,6 +73,7 @@ class Speaker:
         print(f"[{DEVICE_ID}] Starting...")
 
         self.ssdp.advertise()
+        self.ssdp.start_listener()
         self.mqtt.connect()
 
         self.publish_state()  # initial state
@@ -96,6 +97,7 @@ class Speaker:
         )
 
         time.sleep(0.5)
+        self.ssdp.stop_listener()
         self.ssdp.send_byebye()
         self.mqtt.disconnect()
 

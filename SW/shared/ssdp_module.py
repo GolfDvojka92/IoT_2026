@@ -129,9 +129,45 @@ class SSDPModule:
 
     def _handle_ssdp_message(self, message: str, addr: tuple):
         if "M-SEARCH" in message:
-            print(f"[{self.device_id}] M-SEARCH from {addr[0]}")
-            # TODO: Implement an HTTP 200 OK response
+            search_target = self._parse_header(message, "ST")
+
+            # Respond if the search is for everyone, or specifically for our device type
+            if search_target in ("ssdp:all", self.device_type):
+                self._send_ok_response(addr)
+
         elif "ssdp:alive" in message:
-            print(f"[{self.device_id}] Device came online: {addr[0]}")
+            usn = self._parse_header(message, "USN")
+            print(f"[{self.device_id}] Device online: {usn} at {addr[0]}")
+
         elif "ssdp:byebye" in message:
-            print(f"[{self.device_id}] Device went offline: {addr[0]}")
+            usn = self._parse_header(message, "USN")
+            print(f"[{self.device_id}] Device offline: {usn} at {addr[0]}")
+
+    def _send_ok_response(self, addr: tuple):
+        response = (
+            "HTTP/1.1 200 OK\r\n"
+            f"ST: {self.device_type}\r\n"
+            f"USN: uuid:{self.device_id}::{self.device_type}\r\n"
+            f"LOCATION: {self.location}\r\n"
+            "CACHE-CONTROL: max-age=1800\r\n"
+            "EXT:\r\n"               # required by the SSDP spec, indicates MAN was understood
+            f"DATE: {time.strftime('%a, %d %b %Y %H:%M:%S GMT', time.gmtime())}\r\n"
+            "SERVER: Python/SSDP BabyMonitor/1.0\r\n"
+            "\r\n"
+        ).encode("utf-8")
+
+        # Unicast — a fresh UDP socket aimed directly at the requester's IP and port
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.sendto(response, addr)
+        sock.close()
+        print(f"[{self.device_id}] Sent HTTP 200 OK to {addr[0]}")
+
+    # -----------------------------------------------------------------------
+    # Helper
+    # -----------------------------------------------------------------------
+
+    def _parse_header(self, message: str, header: str) -> str:
+        for line in message.splitlines():
+            if line.upper().startswith(header.upper() + ":"):
+                return line.split(":", 1)[1].strip()
+        return ""

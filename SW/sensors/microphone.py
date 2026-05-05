@@ -42,6 +42,7 @@ class Microphone:
 
         # NOTIFY the controller
         self.ssdp.advertise()
+        self.ssdp.start_listener()
 
         # Connect to the MQTT broker
         self.mqtt.connect()
@@ -71,6 +72,7 @@ class Microphone:
         # Give the broker a moment to deliver the offline message
         time.sleep(0.5)
 
+        self.ssdp.stop_listener()
         self.ssdp.send_byebye()
         self.mqtt.disconnect()
 
@@ -86,14 +88,14 @@ class Microphone:
     # ---------------------------------#
     #      Sensor read (simulation)    #
     # ---------------------------------#
-    def _read_microphone(self) -> float:
+    def _read_microphone(self):
         # TODO: replace with actual sensor reading
         return random.choice(["QUIET", "NOISE", "CRYING"])
     
     # ---------------------------------#
     #            Publishing            #
     # ---------------------------------#
-    def _publish_reading(self, sound: float):
+    def _publish_reading(self, sound):
         payload = {
             "device_id":   DEVICE_ID,
             "sound": sound,

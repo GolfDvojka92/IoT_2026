@@ -41,6 +41,7 @@ class TemperatureSensor:
 
         # NOTIFY the controller
         self.ssdp.advertise()
+        self.ssdp.start_listener()
 
         # Connect to the MQTT broker
         self.mqtt.connect()
@@ -70,6 +71,7 @@ class TemperatureSensor:
         # Give the broker a moment to deliver the offline message
         time.sleep(0.5)
 
+        self.ssdp.start_listener()
         self.ssdp.send_byebye()
         self.mqtt.disconnect()
 

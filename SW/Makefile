@@ -62,9 +62,6 @@ toy:
 run-all:
 	@echo "Starting IoT simulation..."
 
-	gnome-terminal -- bash -c "$(PY) controller.py; exec bash"
-	sleep 2
-
 	gnome-terminal -- bash -c "$(PY) -m actuators.fan; exec bash"
 	gnome-terminal -- bash -c "$(PY) -m actuators.heater; exec bash"
 	gnome-terminal -- bash -c "$(PY) -m actuators.lamp; exec bash"
@@ -73,6 +70,9 @@ run-all:
 	gnome-terminal -- bash -c "$(PY) -m sensors.temperature_sensor; exec bash"
 	gnome-terminal -- bash -c "$(PY) -m sensors.light_sensor; exec bash"
 	gnome-terminal -- bash -c "$(PY) -m sensors.microphone; exec bash"
+
+	sleep 2
+	gnome-terminal -- bash -c "$(PY) controller.py; exec bash"
 
 # =============================
 # STOP COMPLETE SYSTEM 

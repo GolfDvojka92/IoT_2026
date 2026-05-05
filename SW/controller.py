@@ -73,7 +73,7 @@ class Controller:
             device_type = DEVICE_TYPE,
             location    = DEVICE_LOCATION
         )
-        self.ssdp._handle_ssdp_message = self._handle_ssdp_message
+        # self.ssdp._handle_ssdp_message = self._handle_ssdp_message
 
     def _on_message(self, client, userdata, msg):
         try:
@@ -91,7 +91,7 @@ class Controller:
                         "state": "ON"
                     }
 
-                    self.client.publish(
+                    self.mqtt.client.publish(
                         "baby/actuator/fan/cmd",
                         json.dumps(command)
                     )
@@ -118,14 +118,15 @@ class Controller:
             TOPIC_LAMP_STATE:    "lamp",
         }
         key = mapping.get(topic)
-        self.devices[key] = (payload.get("status") == "online")
+        if key:
+            self.devices[key] = (payload.get("status") == "online")
 
     # SSDP message handling
     def _handle_ssdp_message(self, message: str, addr: str):
         if "ssdp:alive" in message:
-            print(f"[{self.device_id}] Device came online: {addr[0]}")
+            print(f"[{DEVICE_ID}] Device came online: {addr[0]}")
         elif "ssdp:byebye" in message:
-            print(f"[{self.device_id}] Device went offline: {addr[0]}")
+            print(f"[{DEVICE_ID}] Device went offline: {addr[0]}")
         elif "M-SEARCH" in message:
             pass  # ignore search requests from other devices
 
