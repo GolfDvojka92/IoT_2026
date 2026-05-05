@@ -96,7 +96,7 @@ class LightSensor:
     def _publish_reading(self, light: float):
         payload = {
             "device_id":   DEVICE_ID,
-            "light": light,
+            "light":       light,
             "unit":        "lux",
             "timestamp":   time.time()
         }
