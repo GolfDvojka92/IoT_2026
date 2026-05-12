@@ -3,10 +3,12 @@ import threading
 import time
 
 # SSDP uses this multicast address and port — these are standard, don't change them
-SSDP_MULTICAST_ADDR = "239.255.255.250"
-SSDP_PORT           = 1900
-SSDP_TTL            = 2       # multicast hops
-SSDP_MX             = 3       # max seconds devices may wait before responding to M-SEARCH
+SSDP_MULTICAST_ADDR     = "239.255.255.250"
+SSDP_PORT               = 1900
+SSDP_TTL                = 2     # multicast hops
+SSDP_MX                 = 3     # max seconds devices may wait before responding to M-SEARCH
+SSDP_MAX_AGE            = 120   # max seconds before device is labeled UNAVAILABLE by the controller
+SSDP_ADVERTISE_INTERVAL = 60    # device advertise interval in seconds
 
 class SSDPModule:
     def __init__(self, device_id: str, device_type: str, location: str):
@@ -29,7 +31,7 @@ class SSDPModule:
             f"NT: {self.device_type}\r\n"
             f"USN: uuid:{self.device_id}::{self.device_type}\r\n"
             f"LOCATION: {self.location}\r\n"
-            "CACHE-CONTROL: max-age=1800\r\n"
+            f"CACHE-CONTROL: max-age={SSDP_MAX_AGE}\r\n"
             "\r\n"
         ).encode("utf-8")
 
@@ -107,6 +109,11 @@ class SSDPModule:
     def stop_listener(self):
         self._running = False
         print(f"[{self.device_id}] SSDP listener stopped")
+
+    def _advertise_loop(self):
+        while self._running:
+            self.advertise()
+            time.sleep(SSDP_ADVERTISE_INTERVAL)
 
     def _listen_loop(self):
         sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_UDP)
