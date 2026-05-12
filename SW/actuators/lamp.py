@@ -72,7 +72,7 @@ class Lamp:
     def start(self):
         print(f"[{DEVICE_ID}] Starting...")
 
-        self.ssdp.advertise()
+        self.ssdp.start_advertiser()
         self.ssdp.start_listener()
         self.mqtt.connect()
 

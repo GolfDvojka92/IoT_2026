@@ -107,7 +107,7 @@ class SSDPModule:
         self._listener.start()
         print(f"[{self.device_id}] SSDP listener started")
 
-    def start_adv_loop(self):
+    def start_advertiser(self):
         self._advertiser = threading.Thread(target=self._advertise_loop, daemon=True)
         self._advertiser.start()
         print(f"[{self.device_id}] SSDP advertiser started")

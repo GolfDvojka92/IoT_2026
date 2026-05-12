@@ -41,7 +41,7 @@ class LightSensor:
         print(f"[{DEVICE_ID}] Starting up...")
 
         # NOTIFY the controller
-        self.ssdp.advertise()
+        self.ssdp.start_advertiser()
         self.ssdp.start_listener()
 
         # Connect to the MQTT broker
