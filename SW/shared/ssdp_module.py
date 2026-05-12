@@ -17,6 +17,7 @@ class SSDPModule:
         self.location    = location     # where to reach device (won't be used, needed for the protocol, will hold placeholder string)
         self._running    = False
         self._listener   = None
+        self._advertiser = None
 
     # ------------------------------------------------------- #
     #                         NOTIFY                          #
@@ -105,6 +106,11 @@ class SSDPModule:
         self._listener = threading.Thread(target=self._listen_loop, daemon=True)
         self._listener.start()
         print(f"[{self.device_id}] SSDP listener started")
+
+    def start_adv_loop(self):
+        self._advertiser = threading.Thread(target=self._advertise_loop, daemon=True)
+        self._advertiser.start()
+        print(f"[{self.device_id}] SSDP advertiser started")
 
     def stop_listener(self):
         self._running = False
