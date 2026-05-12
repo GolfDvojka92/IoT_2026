@@ -13,7 +13,7 @@ TOPIC_STATE     = "baby/sensor/microphone/state"   # our own online/offline stat
 # ---------------------------------#
 DEVICE_ID        = "microphone_01"
 PUBLISH_INTERVAL = 10                                           # seconds between readings in normal operation
-DEVICE_TYPE      = "urn:babymonitor:device:microphone:1"
+DEVICE_TYPE      = "urn:babymonitor:device:Microphone:1"
 DEVICE_LOCATION  = "http://192.168.1.10:8080/description.xml"   # placeholder
 
 class Microphone:
