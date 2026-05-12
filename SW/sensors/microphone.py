@@ -55,6 +55,9 @@ class Microphone:
             retain  = True
         )
 
+        time.sleep(5)
+        self.ssdp.stop_listener()
+
         self._running = True
         self._reading_loop()
 
@@ -72,7 +75,6 @@ class Microphone:
         # Give the broker a moment to deliver the offline message
         time.sleep(0.5)
 
-        self.ssdp.stop_listener()
         self.ssdp.send_byebye()
         self.mqtt.disconnect()
 

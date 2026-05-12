@@ -108,7 +108,6 @@ class SSDPModule:
         print(f"[{self.device_id}] SSDP listener started")
 
     def start_advertiser(self):
-        self._running  = True
         self._advertiser = threading.Thread(target=self._advertise_loop, daemon=True)
         self._advertiser.start()
         print(f"[{self.device_id}] SSDP advertiser started")
@@ -118,7 +117,7 @@ class SSDPModule:
         print(f"[{self.device_id}] SSDP listener stopped")
 
     def _advertise_loop(self):
-        while self._running:
+        while True:
             self.advertise()
             time.sleep(SSDP_ADVERTISE_INTERVAL)
 

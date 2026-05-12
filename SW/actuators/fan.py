@@ -78,6 +78,9 @@ class Fan:
 
         self.publish_state()  # initial state
 
+        time.sleep(5)
+        self.ssdp.stop_listener()
+
         self._running = True
 
         while self._running:
@@ -97,7 +100,6 @@ class Fan:
         )
 
         time.sleep(0.5)
-        self.ssdp.stop_listener()
         self.ssdp.send_byebye()
         self.mqtt.disconnect()
 
