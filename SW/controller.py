@@ -92,7 +92,7 @@ class Controller:
         try:
             topic   = msg.topic
             payload = json.loads(msg.payload.decode())
-            # print(f"[MQTT] {topic} -> {payload}")
+            print(f"[MQTT] {topic} -> {payload}")
 
             
         except Exception as e:
@@ -114,7 +114,7 @@ class Controller:
             self.devices[key] = (payload.get("status") == "online")
 
     # SSDP message handling
-    def _handle_ssdp_message(self, message: str, addr: str):
+    def _handle_ssdp_message(self, message: str, addr: tuple):
 
         nt = self.ssdp._parse_header(message, "NT")
         usn = self.ssdp._parse_header(message, "USN")

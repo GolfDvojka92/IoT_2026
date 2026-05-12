@@ -26,9 +26,6 @@ class Fan:
             subscriptions = [TOPIC_CMD]
         )
 
-        # Override message handler
-        self.mqtt._on_message = self.on_message
-
         # SSDP
         self.ssdp = SSDPModule(
             device_id = DEVICE_ID,
@@ -36,9 +33,13 @@ class Fan:
             location = DEVICE_LOCATION
         )
 
-    # ---------------------------------#
-    #        MESSAGE HANDLER           #
-    # ---------------------------------#
+        # Override message handlers
+        self.mqtt._on_message = self.on_message
+        self.ssdp._handle_ssdp_message = self._handle_ssdp_message
+
+    # ----------------------------------#
+    #          MESSAGE HANDLERS         #
+    # ----------------------------------#
     def on_message(self, client, userdata, msg):
         try:
             payload = json.loads(msg.payload.decode())
@@ -53,8 +54,22 @@ class Fan:
         except Exception as e:
             print("[FAN] Error:", e)
 
+    def _handle_ssdp_message(self, message: str, addr: tuple):
+        if "M-SEARCH" in message:
+            search_target = self.ssdp._parse_header(message, "ST")
+
+            # Respond if the search is for everyone, or specifically for our device type
+            if search_target in ("ssdp:all", self.ssdp.device_type):
+                self.ssdp._send_ok_response(addr)
+
+        elif "ssdp:alive" in message:
+            pass
+
+        elif "ssdp:byebye" in message:
+            pass
+
     # ---------------------------------#
-    #        PUBLISH STATE             #
+    #           PUBLISH STATE          #
     # ---------------------------------#
     def publish_state(self):
         payload = {
@@ -67,19 +82,16 @@ class Fan:
         print(f"[FAN] State -> {self.state}")
 
     # ---------------------------------#
-    #            START                 #
+    #               START              #
     # ---------------------------------#
     def start(self):
         print(f"[{DEVICE_ID}] Starting...")
 
-        self.ssdp.start_advertiser()
         self.ssdp.start_listener()
+        self.ssdp.start_advertiser()
         self.mqtt.connect()
 
         self.publish_state()  # initial state
-
-        time.sleep(5)
-        self.ssdp.stop_listener()
 
         self._running = True
 
@@ -87,7 +99,7 @@ class Fan:
             time.sleep(1)
 
     # ---------------------------------#
-    #            STOP                  #
+    #                STOP              #
     # ---------------------------------#
     def stop(self):
         print(f"[{DEVICE_ID}] Stopping...")
@@ -100,6 +112,7 @@ class Fan:
         )
 
         time.sleep(0.5)
+        self.ssdp.stop_bg_threads()
         self.ssdp.send_byebye()
         self.mqtt.disconnect()
 

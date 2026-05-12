@@ -87,7 +87,7 @@ class SSDPModule:
             while True:
                 data, addr = sock.recvfrom(4096)
                 response   = data.decode("utf-8", errors="ignore")
-                print(f"[{self.device_id}] Response from {addr[0]}:\n{response}")
+                print(f"[{self.device_id}] Response from {addr[0]}")
                 discovered.append((addr, response))
         except socket.timeout:
             print(f"[{self.device_id}] Search complete — {len(discovered)} device(s) found")
@@ -112,12 +112,13 @@ class SSDPModule:
         self._advertiser.start()
         print(f"[{self.device_id}] SSDP advertiser started")
 
-    def stop_listener(self):
+    def stop_bg_threads(self):
         self._running = False
         print(f"[{self.device_id}] SSDP listener stopped")
+        print(f"[{self.device_id}] SSDP advertiser stopped")
 
     def _advertise_loop(self):
-        while True:
+        while self._running:
             self.advertise()
             time.sleep(SSDP_ADVERTISE_INTERVAL)
 
