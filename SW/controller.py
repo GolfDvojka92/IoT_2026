@@ -21,6 +21,7 @@ TOPIC_HEATER_CMD    = "baby/actuator/heater/cmd"
 TOPIC_MOTOR_CMD     = "baby/actuator/motor/cmd"
 TOPIC_SPEAKER_CMD   = "baby/actuator/speaker/cmd"
 TOPIC_LAMP_CMD      = "baby/actuator/lamp/cmd"
+
 ## parent notifications
 TOPIC_STATUS        = "baby/parent/notifications"
 
@@ -32,6 +33,17 @@ PUBLISH_INTERVAL = 10                                   # seconds between readin
 DEVICE_TYPE      = "urn:babymonitor:controller:1"
 DEVICE_LOCATION  = "http://localhost/description.xml"   # placeholder
 
+ALLOWED_DEVICE_TYPES = (
+    "urn:babymonitor:device:TemperatureSensor:1",
+    "urn:babymonitor:device:LightSensor:1",
+    "urn:babymonitor:device:Microphone:1",
+    "urn:babymonitor:device:Fan:1",
+    "urn:babymonitor:device:Heater:1",
+    "urn:babymonitor:device:Speaker:1",
+    "urn:babymonitor:device:Lamp:1",
+    "urn:babymonitor:device:Toy:1",
+    "urn:babymonitor:controller:1",        
+)
 
 class Controller:
 
@@ -73,38 +85,16 @@ class Controller:
             device_type = DEVICE_TYPE,
             location    = DEVICE_LOCATION
         )
-        # self.ssdp._handle_ssdp_message = self._handle_ssdp_message
+        
+        self.ssdp._handle_ssdp_message = self._handle_ssdp_message
 
     def _on_message(self, client, userdata, msg):
         try:
             topic   = msg.topic
             payload = json.loads(msg.payload.decode())
-            print(f"[MQTT] {topic} -> {payload}")
+            # print(f"[MQTT] {topic} -> {payload}")
 
-            # SIMPLE RULE ENGINE
-            if msg.topic == "baby/sensor/microphone":
-                if payload.get("sound") == "CRYING":
-                    print("[DECISION] Baby crying -> turning ON fan")
-
-                    # TEST COMMAND TO FAN
-                    command = {
-                        "state": "ON"
-                    }
-
-                    self.mqtt.client.publish(
-                        "baby/actuator/fan/cmd",
-                        json.dumps(command)
-                    )
-
-                    print("[CONTROLLER] Sent FAN ON command")
-            elif msg.topic in (
-                    TOPIC_FAN_STATE,
-                    TOPIC_HEATER_STATE,
-                    TOPIC_MOTOR_STATE,
-                    TOPIC_SPEAKER_STATE,
-                    TOPIC_LAMP_STATE
-                ):
-                self._handle_actuator_state(topic, payload)
+            
         except Exception as e:
             print("Error:", e)
 
@@ -117,16 +107,31 @@ class Controller:
             TOPIC_SPEAKER_STATE: "speaker",
             TOPIC_LAMP_STATE:    "lamp",
         }
+
         key = mapping.get(topic)
+
         if key:
             self.devices[key] = (payload.get("status") == "online")
 
     # SSDP message handling
     def _handle_ssdp_message(self, message: str, addr: str):
+
+        nt = self.ssdp._parse_header(message, "NT")
+        usn = self.ssdp._parse_header(message, "USN")
+        
         if "ssdp:alive" in message:
-            print(f"[{DEVICE_ID}] Device came online: {addr[0]}")
+            if nt in ALLOWED_DEVICE_TYPES:
+                print(f"[CONTROLLER] Authorized device online: {usn} at {addr[0]}")
+                
+            else:
+                print(f"[CONTROLLER] WARNING: Unauthorized device ignored — NT='{nt}' USN='{usn}' IP={addr[0]}")
+
         elif "ssdp:byebye" in message:
-            print(f"[{DEVICE_ID}] Device went offline: {addr[0]}")
+            if nt in ALLOWED_DEVICE_TYPES:
+                print(f"[CONTROLLER] Authorized device offline: {usn} at {addr[0]}")
+            else:
+                print(f"[CONTROLLER] WARNING: Byebye from unauthorized device ignored — NT='{nt}' IP={addr[0]}")
+
         elif "M-SEARCH" in message:
             pass  # ignore search requests from other devices
 

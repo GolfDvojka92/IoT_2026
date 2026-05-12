@@ -8,7 +8,7 @@ SSDP_PORT               = 1900
 SSDP_TTL                = 2     # multicast hops
 SSDP_MX                 = 3     # max seconds devices may wait before responding to M-SEARCH
 SSDP_MAX_AGE            = 120   # max seconds before device is labeled UNAVAILABLE by the controller
-SSDP_ADVERTISE_INTERVAL = 60    # device advertise interval in seconds
+SSDP_ADVERTISE_INTERVAL = 10    # device advertise interval in seconds
 
 class SSDPModule:
     def __init__(self, device_id: str, device_type: str, location: str):
