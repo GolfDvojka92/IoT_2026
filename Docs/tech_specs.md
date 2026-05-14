@@ -157,32 +157,34 @@ The system monitors and regulates ambient temperature to ensure infant safety an
             ``{"type": "ALERT", "code": "TEMP_STUCK"}``  
 
 ## SW-2: Audio monitoring & Cry Detection
-Detect infant crying and notify parents while enabling automatic soothing actions  
+Detect infant crying using machine learning (trained CNN model) instead of only simple signal rules.
 
-### **SW-2.1**: Cry detection system  
-- **SW-2.1.1**: The system detects baby crying using microphone input  
-    - **SW-2.1.1.1**: The system continuously monitors audio  
-    - **ARCH**:  
-        - Microphone (MIC_Sim) continuously captures audio and publishes data to topic baby/sensor/audio  
-            - Payload example: ``{"amplitude": 0.78, "frequency": 450, "unit": "Hz"}``  
-        - The logic engine subscribes to ``baby/sensor/#`` and processes incoming audio data in real time
-    - **SW-2.1.1.2**: Cry pattern recognition  
-    - **ARCH**:  
-        - The logic engine applies basic DSP techniques:  
-            - Amplitude thresholding  
-            - Frequency range filtering (typical baby cry range ~300–600 Hz)  
-            - Optional FFT analysis  
-        - Simulation uses prerecorded audio files:  
-            - crying.wav  
-            - silence.wav  
-        - If signal exceeds defined thresholds and matches crying pattern &rarr; CRY_DETECTED event is generated  
-    - **SW-2.1.1.3**: Cry persistence validation  
-    - **ARCH**:  
-        - To avoid false triggers, crying must persist for a defined duration (e.g., 3 seconds)  
-        - A `Cry_Timer` is started when threshold is exceeded:  
-            - If signal remains above threshold for ≥ 3 seconds &rarr; valid cry event  
-            - Otherwise → discard event  
-
+### SW-2.1: Cry detection system 
+- **SW-2.1.1**: Audio acquisition
+    - The system continuously monitors audio input from the microphone.
+    - **ARCH**:
+        - Microphone (MIC_Sim) captures raw audio waveform continuously.
+        - Instead of analyzing only amplitude/frequency manually,
+          audio is forwarded to the logic engine as a WAV-like signal.
+        - Example internal flow:
+            audio stream → windowing → feature extraction → ML model → prediction
+- **SW-2.1.2**: Machine learning-based cry detection
+    - **ARCH**:
+        - The system uses a trained deep learning model (BabyCryCNN) to detect crying.
+        - Model input:
+            - Mel-spectrogram + MFCC features extracted from audio segment
+        - Model output:
+            - probability of "BabyCry" vs "Other"
+        - Decision rule:
+            If P(BabyCry) ≥ threshold (e.g. 0.5)
+            → CRY_DETECTED event is triggered
+- **SW-2.1.3**: Cry persistence validation (post-processing layer)
+    - **ARCH**:
+        - Even with ML predictions, system avoids false alarms:
+            - Cry must persist across multiple consecutive windows (e.g. 3 seconds)
+        - A sliding window majority vote is used:
+            - if most predictions in last N windows = BabyCry → valid event
+              
 ### **SW-2.2**: Parent notification  
 - **SW-2.2.1**: The system notifies parents when it detects crying  
     - **SW-2.2.1.1**: The system sends a high-priority alert  
