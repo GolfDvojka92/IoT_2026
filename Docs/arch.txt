@@ -17,9 +17,11 @@ smart_baby_room/
 ├────── speaker.py
 ├────── lamp.py
 │
+├── model/
+├────── babycry_model.pt
+├────── preprocess.py
+│
 ├── controller/
-├────── controller.py
-├────── auto_logic.py
 │
 ├── parent_app/
 └────── parent_cli.py

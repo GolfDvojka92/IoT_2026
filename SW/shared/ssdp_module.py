@@ -19,7 +19,6 @@ class SSDPModule:
         self._listener   = None
         self._advertiser = None
 
-
     """
         Broadcasts an SSDP NOTIFY message announcing that this device is online.
         Other devices listening on the multicast group can detect it.
