@@ -4,41 +4,39 @@ from shared.mqtt_module import MQTTModule
 from shared.ssdp_module import SSDPModule
 
 # Topics
-TOPIC_CMD   = "baby/actuator/fan/cmd"
-TOPIC_STATE = "baby/actuator/fan/state"
+TOPIC_CMD           = "baby/actuator/fan/cmd"
+TOPIC_STATE         = "baby/actuator/fan/state"
 
 # ---------------------------------#
 #              CONFIG              #
 # ---------------------------------#
-DEVICE_ID        = "fan_01"
-DEVICE_TYPE      = "urn:babymonitor:device:Fan:1"
-DEVICE_LOCATION  = "http://192.168.1.10:8080/description.xml"
+DEVICE_ID           = "fan_01"
+DEVICE_TYPE         = "urn:babymonitor:device:Fan:1"
+DEVICE_LOCATION     = "http://192.168.1.10:8080/description.xml"
 
 class Fan:
 
     def __init__(self):
-        self.state = "OFF"
-        self._running = False
+        self.state              = "OFF"
+        self._running           = False
 
         # MQTT
         self.mqtt = MQTTModule(
-            device_id = DEVICE_ID,
-            subscriptions = [TOPIC_CMD]
+            device_id           = DEVICE_ID,
+            subscriptions       = [TOPIC_CMD]
         )
-
         # SSDP
         self.ssdp = SSDPModule(
-            device_id = DEVICE_ID,
-            device_type = DEVICE_TYPE,
-            location = DEVICE_LOCATION
+            device_id           = DEVICE_ID,
+            device_type         = DEVICE_TYPE,
+            location            = DEVICE_LOCATION
         )
 
-        # Override message handlers
-        self.mqtt._on_message = self.on_message
-        self.ssdp._handle_ssdp_message = self._handle_ssdp_message
+        # Override message handler
+        self.mqtt._on_message   = self.on_message
 
     # ----------------------------------#
-    #          MESSAGE HANDLERS         #
+    #          MESSAGE HANDLER          #
     # ----------------------------------#
     def on_message(self, client, userdata, msg):
         try:
@@ -53,20 +51,6 @@ class Fan:
 
         except Exception as e:
             print("[FAN] Error:", e)
-
-    def _handle_ssdp_message(self, message: str, addr: tuple):
-        if "M-SEARCH" in message:
-            search_target = self.ssdp._parse_header(message, "ST")
-
-            # Respond if the search is for everyone, or specifically for our device type
-            if search_target in ("ssdp:all", self.ssdp.device_type):
-                self.ssdp._send_ok_response(addr)
-
-        elif "ssdp:alive" in message:
-            pass
-
-        elif "ssdp:byebye" in message:
-            pass
 
     # ---------------------------------#
     #           PUBLISH STATE          #

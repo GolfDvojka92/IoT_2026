@@ -192,15 +192,6 @@ class SSDPModule:
             # Respond if the search is for everyone, or specifically for our device type
             if search_target in ("ssdp:all", self.device_type):
                 self._send_ok_response(addr)
-
-        elif "ssdp:alive" in message:
-            usn = self._parse_header(message, "USN")
-            print(f"[{self.device_id}] Device online: {usn} at {addr[0]}")
-
-        elif "ssdp:byebye" in message:
-            usn = self._parse_header(message, "USN")
-            print(f"[{self.device_id}] Device offline: {usn} at {addr[0]}")
-
     """
         Sends HTTP 200 OK response directly to a device that sent M-SEARCH.
     """

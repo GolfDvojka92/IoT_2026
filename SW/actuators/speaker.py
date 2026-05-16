@@ -4,37 +4,36 @@ from shared.mqtt_module import MQTTModule
 from shared.ssdp_module import SSDPModule
 
 # Topics
-TOPIC_CMD   = "baby/actuator/speaker/cmd"
-TOPIC_STATE = "baby/actuator/speaker/state"
+TOPIC_CMD           = "baby/actuator/speaker/cmd"
+TOPIC_STATE         = "baby/actuator/speaker/state"
 
 # ---------------------------------#
 #              CONFIG              #
 # ---------------------------------#
-DEVICE_ID        = "speaker_01"
-DEVICE_TYPE      = "urn:babymonitor:device:Speaker:1"
-DEVICE_LOCATION  = "http://192.168.1.10:8080/description.xml"
+DEVICE_ID           = "speaker_01"
+DEVICE_TYPE         = "urn:babymonitor:device:Speaker:1"
+DEVICE_LOCATION     = "http://192.168.1.10:8080/description.xml"
 
 class Speaker:
 
     def __init__(self):
-        self.state = "OFF"
-        self._running = False
+        self.state              = "OFF"
+        self._running           = False
 
         # MQTT
         self.mqtt = MQTTModule(
-            device_id = DEVICE_ID,
-            subscriptions = [TOPIC_CMD]
+            device_id           = DEVICE_ID,
+            subscriptions       = [TOPIC_CMD]
+        )
+        # SSDP
+        self.ssdp = SSDPModule(
+            device_id           = DEVICE_ID,
+            device_type         = DEVICE_TYPE,
+            location            = DEVICE_LOCATION
         )
 
         # Override message handler
-        self.mqtt._on_message = self.on_message
-
-        # SSDP
-        self.ssdp = SSDPModule(
-            device_id = DEVICE_ID,
-            device_type = DEVICE_TYPE,
-            location = DEVICE_LOCATION
-        )
+        self.mqtt._on_message   = self.on_message
 
     # ---------------------------------#
     #        MESSAGE HANDLER           #
@@ -72,14 +71,14 @@ class Speaker:
     def start(self):
         print(f"[{DEVICE_ID}] Starting...")
 
-        self.ssdp.start_advertiser()
         self.ssdp.start_listener()
+        self.ssdp.start_advertiser()
         self.mqtt.connect()
 
         self.publish_state()  # initial state
 
         time.sleep(5)
-        self.ssdp.stop_listener()
+        self.ssdp.stop_bg_threads()
 
         self._running = True
 

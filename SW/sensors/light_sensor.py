@@ -5,34 +5,34 @@ from shared.mqtt_module import MQTTModule
 from shared.ssdp_module import SSDPModule
 
 # Publishes to
-TOPIC_READING   = "baby/sensor/light"         # periodic temperature readings
-TOPIC_STATE     = "baby/sensor/light/state"   # our own online/offline status
+TOPIC_READING       = "baby/sensor/light"         # periodic temperature readings
+TOPIC_STATE         = "baby/sensor/light/state"   # our own online/offline status
 
 # ---------------------------------#
 #              CONFIG              #
 # ---------------------------------#
-DEVICE_ID        = "light_sensor_01"
-PUBLISH_INTERVAL = 10                                           # seconds between readings in normal operation
-DEVICE_TYPE      = "urn:babymonitor:device:LightSensor:1"
-DEVICE_LOCATION  = "http://192.168.1.10:8080/description.xml"   # placeholder
+DEVICE_ID           = "light_sensor_01"
+PUBLISH_INTERVAL    = 10                                           # seconds between readings in normal operation
+DEVICE_TYPE         = "urn:babymonitor:device:LightSensor:1"
+DEVICE_LOCATION     = "http://192.168.1.10:8080/description.xml"   # placeholder
 
 class LightSensor:
 
     def __init__(self):
         # Set up MQTT
         self.mqtt = MQTTModule(
-            device_id     = DEVICE_ID,
-            subscriptions = []
+            device_id       = DEVICE_ID,
+            subscriptions   = []
         )
 
         # Set up SSDP — so the controller can discover us on the network
         self.ssdp = SSDPModule(
-            device_id    = DEVICE_ID,
-            device_type  = DEVICE_TYPE,
-            location     = DEVICE_LOCATION
+            device_id       = DEVICE_ID,
+            device_type     = DEVICE_TYPE,
+            location        = DEVICE_LOCATION
         )
 
-        self._running = False
+        self._running       = False
 
     # ---------------------------------#
     #       Startup and shutdown       #
@@ -41,8 +41,8 @@ class LightSensor:
         print(f"[{DEVICE_ID}] Starting up...")
 
         # NOTIFY the controller
-        self.ssdp.start_advertiser()
         self.ssdp.start_listener()
+        self.ssdp.start_advertiser()
 
         # Connect to the MQTT broker
         self.mqtt.connect()
@@ -56,7 +56,7 @@ class LightSensor:
         )
 
         time.sleep(5)
-        self.ssdp.stop_listener()
+        self.ssdp.stop_bg_threads()
 
         self._running = True
         self._reading_loop()

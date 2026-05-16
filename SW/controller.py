@@ -28,10 +28,10 @@ TOPIC_STATUS        = "baby/parent/notifications"
 # ---------------------------------#
 #              CONFIG              #
 # ---------------------------------#
-DEVICE_ID        = "controller"
-PUBLISH_INTERVAL = 10                                   # seconds between readings in normal operation
-DEVICE_TYPE      = "urn:babymonitor:controller:1"
-DEVICE_LOCATION  = "http://localhost/description.xml"   # placeholder
+DEVICE_ID           = "controller"
+PUBLISH_INTERVAL    = 10                                   # seconds between readings in normal operation
+DEVICE_TYPE         = "urn:babymonitor:controller:1"
+DEVICE_LOCATION     = "http://localhost/description.xml"   # placeholder
 
 ALLOWED_DEVICE_TYPES = (
     "urn:babymonitor:device:TemperatureSensor:1",
