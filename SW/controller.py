@@ -121,16 +121,16 @@ class Controller:
         
         if "ssdp:alive" in message:
             if nt in ALLOWED_DEVICE_TYPES:
-                print(f"[CONTROLLER] Authorized device online: {usn} at {addr[0]}")
+                print(f"[controller] Authorized device online: {usn} at {addr[0]}")
                 
             else:
-                print(f"[CONTROLLER] WARNING: Unauthorized device ignored — NT='{nt}' USN='{usn}' IP={addr[0]}")
+                print(f"[controller] WARNING: Unauthorized device ignored — NT='{nt}' USN='{usn}' IP={addr[0]}")
 
         elif "ssdp:byebye" in message:
             if nt in ALLOWED_DEVICE_TYPES:
-                print(f"[CONTROLLER] Authorized device offline: {usn} at {addr[0]}")
+                print(f"[controller] Authorized device offline: {usn} at {addr[0]}")
             else:
-                print(f"[CONTROLLER] WARNING: Byebye from unauthorized device ignored — NT='{nt}' IP={addr[0]}")
+                print(f"[controller] WARNING: Byebye from unauthorized device ignored — NT='{nt}' IP={addr[0]}")
 
         elif "M-SEARCH" in message:
             pass  # ignore search requests from other devices
@@ -138,7 +138,7 @@ class Controller:
 
     # --------------- START ----------------
     def start(self):
-        print("[CONTROLLER] Starting...")
+        print("[controller] Starting...")
 
         self.ssdp.start_listener()
         self.ssdp.search("ssdp:all")
