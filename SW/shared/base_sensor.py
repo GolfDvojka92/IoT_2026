@@ -24,7 +24,6 @@ class BaseSensor(BaseDevice):
     # ------------------------------------------------ #
     #         Methods that subclasses implement         #
     # ------------------------------------------------ #
-
     def _read(self):
         raise NotImplementedError
     

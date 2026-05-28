@@ -20,7 +20,6 @@ class BaseDevice:
     DEVICE_ID       = NotImplemented
     DEVICE_TYPE     = NotImplemented
     DEVICE_LOCATION = NotImplemented
-    TOPIC_STATE     = NotImplemented
 
     def __init__(self, subscriptions: list[str] = []):
         self._running = False

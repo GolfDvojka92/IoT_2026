@@ -2,7 +2,7 @@ import time
 from shared.base_sensor import BaseSensor
 
 TOPIC_READING    = "baby/sensor/temperature"
-TOPIC_STATE      = "baby/sensor/temperature/state"
+TOPIC_STATE = "baby/sensor/temperature/state"
 
 DEVICE_ID        = "temperature_sensor_01"
 PUBLISH_INTERVAL = 10
@@ -15,9 +15,9 @@ class TemperatureSensor(BaseSensor):
     DEVICE_TYPE      = DEVICE_TYPE
     DEVICE_LOCATION  = DEVICE_LOCATION
     TOPIC_READING    = TOPIC_READING
-    TOPIC_STATE      = TOPIC_STATE
     PUBLISH_INTERVAL = PUBLISH_INTERVAL
-
+    TOPIC_STATE      = TOPIC_STATE
+    
     def _read(self) -> float:
         # TODO: replace with actual sensor reading
         return 22.5  # placeholder

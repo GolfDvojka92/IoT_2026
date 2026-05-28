@@ -7,9 +7,8 @@ import torch
 from shared.base_sensor import BaseSensor
 from model.infer import load_model, predict_file
 
-
 TOPIC_READING    = "baby/sensor/microphone"
-TOPIC_STATE      = "baby/sensor/microphone/state"
+TOPIC_STATE = "baby/sensor/microphone/state"
 
 DEVICE_ID        = "microphone_01"
 PUBLISH_INTERVAL = 10
@@ -26,9 +25,8 @@ class Microphone(BaseSensor):
     DEVICE_TYPE      = DEVICE_TYPE
     DEVICE_LOCATION  = DEVICE_LOCATION
     TOPIC_READING    = TOPIC_READING
-    TOPIC_STATE      = TOPIC_STATE
     PUBLISH_INTERVAL = PUBLISH_INTERVAL
-
+    TOPIC_STATE      = TOPIC_STATE
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

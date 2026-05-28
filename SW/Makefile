@@ -26,6 +26,13 @@ broker:
 # =============================
 controller:
 	$(PY) controller.py
+	
+# =============================
+# PARENT CONTROLLER
+# =============================
+parent:
+	$(PY) -m parent.parent.py
+
 
 # =============================
 # SENSORS
@@ -72,6 +79,8 @@ run-all:
 	gnome-terminal -- bash -c "$(PY) -m sensors.temperature_sensor; exec bash"
 	gnome-terminal -- bash -c "$(PY) -m sensors.light_sensor; exec bash"
 	gnome-terminal -- bash -c "$(PY) -m sensors.microphone; exec bash"
+
+	gnome-terminal -- bash -c "$(PY) -m parent.parent; exec bash"
 
 	sleep 2
 	gnome-terminal -- bash -c "$(PY) controller.py; exec bash"

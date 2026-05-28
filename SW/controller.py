@@ -8,8 +8,8 @@ from shared.ssdp_module import SSDPModule
 
 MAX_AGE             = 30        # in full implementation all devices should get their max_age, this is done for simplicity
 
-# Subscribes to
-ALL_TOPICS          = "baby/#"
+ALL_TOPICS = "baby/#" 
+
 # Device types
 TOPIC_FAN_TYPE      = "urn:babymonitor:device:TemperatureSensor:1"
 TOPIC_HEATER_TYPE   = "urn:babymonitor:device:LightSensor:1"
@@ -20,16 +20,27 @@ TOPIC_LIGHT_TYPE    = "urn:babymonitor:device:Speaker:1"
 TOPIC_MIC_TYPE      = "urn:babymonitor:device:Lamp:1"
 TOPIC_TEMP_TYPE     = "urn:babymonitor:device:Toy:1"
 
+# Subscribes to
+TOPIC_MICROPHONE      = "baby/sensor/microphone"
+TOPIC_LIGHT           = "baby/sensor/light"
+TOPIC_TEMPERATURE     = "baby/sensor/temperature"
+TOPIC_FAN_STATE       = "baby/actuator/fan/state"
+TOPIC_HEATER_STATE    = "baby/actuator/heater/state"
+TOPIC_MOTOR_STATE     = "baby/actuator/motor/state"
+TOPIC_SPEAKER_STATE   = "baby/actuator/speaker/state"
+TOPIC_LAMP_STATE      = "baby/actuator/lamp/state"
+TOPIC_PARENT_CONTROL  = "baby/parent/control"
+
 # Publishes to
-## actuator commands
 TOPIC_FAN_CMD       = "baby/actuator/fan/cmd"
 TOPIC_HEATER_CMD    = "baby/actuator/heater/cmd"
 TOPIC_MOTOR_CMD     = "baby/actuator/motor/cmd"
 TOPIC_SPEAKER_CMD   = "baby/actuator/speaker/cmd"
 TOPIC_LAMP_CMD      = "baby/actuator/lamp/cmd"
 
-## parent notifications
-TOPIC_STATUS        = "baby/parent/notifications"
+TOPIC_PARENT_NOTIF  = "baby/parent/notifications"
+TOPIC_PARENT_ALERT  = "baby/parent/alerts"
+
 
 # ---------------------------------#
 #              CONFIG              #
