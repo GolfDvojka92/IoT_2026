@@ -6,19 +6,19 @@ import paho.mqtt.client as mqtt
 from shared.mqtt_module import MQTTModule
 from shared.ssdp_module import SSDPModule
 
-MAX_AGE            = 120        # in full implementation all devices should get their max_age, this is done for simplicity
+MAX_AGE             = 120        # in full implementation all devices should get their max_age, this is done for simplicity
 
 # Subscribes to
-ALL_TOPICS = "baby/#"
+ALL_TOPICS          = "baby/#"
 # Device types
-TOPIC_FAN_TYPE     = "urn:babymonitor:device:TemperatureSensor:1"
-TOPIC_HEATER_TYPE  = "urn:babymonitor:device:LightSensor:1"
-TOPIC_MOTOR_TYPE   = "urn:babymonitor:device:Microphone:1"
-TOPIC_SPEAKER_TYPE = "urn:babymonitor:device:Fan:1"
-TOPIC_LAMP_TYPE    = "urn:babymonitor:device:Heater:1"
-TOPIC_LIGHT_TYPE   = "urn:babymonitor:device:Speaker:1"
-TOPIC_MIC_TYPE     = "urn:babymonitor:device:Lamp:1"
-TOPIC_TEMP_TYPE    = "urn:babymonitor:device:Toy:1"
+TOPIC_FAN_TYPE      = "urn:babymonitor:device:TemperatureSensor:1"
+TOPIC_HEATER_TYPE   = "urn:babymonitor:device:LightSensor:1"
+TOPIC_MOTOR_TYPE    = "urn:babymonitor:device:Microphone:1"
+TOPIC_SPEAKER_TYPE  = "urn:babymonitor:device:Fan:1"
+TOPIC_LAMP_TYPE     = "urn:babymonitor:device:Heater:1"
+TOPIC_LIGHT_TYPE    = "urn:babymonitor:device:Speaker:1"
+TOPIC_MIC_TYPE      = "urn:babymonitor:device:Lamp:1"
+TOPIC_TEMP_TYPE     = "urn:babymonitor:device:Toy:1"
 
 # Publishes to
 ## actuator commands
@@ -56,6 +56,7 @@ class Controller:
     def __init__(self):
         self.device_status  = {}    # usn -> "online" | "offline" | "unavailable"
         self.last_seen      = {}    # usn -> datetime
+        self.lock           = threading.Lock()
 
         # MQTT client
         self.mqtt = MQTTModule(
@@ -89,11 +90,12 @@ class Controller:
     def _check_expiry(self):
         while True:
             now = datetime.now()
-            for usn, last in list(self.last_seen.items()):  # list() to avoid mutation during iteration
-                elapsed = (now - last).total_seconds()
-                if elapsed > MAX_AGE and self.device_status.get(usn) == "online":
-                    self.device_status[usn] = "unavailable"
-                    print(f"[controller] Device went unavailable (MAX_AGE expired): {usn}")
+            with self.lock:
+                for usn, last in list(self.last_seen.items()):  # list() to avoid mutation during iteration
+                    elapsed = (now - last).total_seconds()
+                    if elapsed > MAX_AGE and self.device_status.get(usn) == "online":
+                        self.device_status[usn] = "unavailable"
+                        print(f"[controller] Device went unavailable (MAX_AGE expired): {usn}")
             time.sleep(5)
 
     # SSDP message handling
@@ -104,16 +106,18 @@ class Controller:
         
         if "ssdp:alive" in message:
             if nt in ALLOWED_DEVICE_TYPES:
-                self.device_status[usn] = "online"
-                self.last_seen[usn]     = datetime.now()
+                with self.lock:
+                    self.device_status[usn] = "online"
+                    self.last_seen[usn]     = datetime.now()
                 print(f"[controller] Authorized device online: {usn} at {addr[0]}")
             else:
                 print(f"[controller] WARNING: Unauthorized device ignored — NT='{nt}' USN='{usn}' IP={addr[0]}")
 
         elif "ssdp:byebye" in message:
             if nt in ALLOWED_DEVICE_TYPES:
-                self.device_status[usn] = "online"
-                self.last_seen.pop(usn, None);
+                with self.lock:
+                    self.device_status[usn] = "offline"
+                    self.last_seen.pop(usn, None);
                 print(f"[controller] Authorized device offline: {usn} at {addr[0]}")
             else:
                 print(f"[controller] WARNING: Byebye from unauthorized device ignored — NT='{nt}' IP={addr[0]}")
