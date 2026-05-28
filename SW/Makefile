@@ -31,7 +31,7 @@ controller:
 # PARENT CONTROLLER
 # =============================
 parent:
-	$(PY) -m parent.parent.py
+	$(PY) -m parent.parent
 
 
 # =============================
@@ -90,8 +90,7 @@ run-all:
 # =============================
 stop-all:
 	@echo "Stopping all IoT processes..."
-	# 1. Ubijamo sve koji u komandi imaju 'sensors' ili 'actuators'
-	# Koristimo -f (full command line matching) i -i (ignore case)
+	# Kill all background execution scripts mapping modules or main scripts
 	pkill -9 -f "sensors\." || true
 	pkill -9 -f "actuators\." || true
 	pkill -9 -f "controller.py" || true

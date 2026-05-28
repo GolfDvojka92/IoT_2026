@@ -41,7 +41,6 @@ TOPIC_LAMP_CMD      = "baby/actuator/lamp/cmd"
 TOPIC_PARENT_NOTIF  = "baby/parent/notifications"
 TOPIC_PARENT_ALERT  = "baby/parent/alerts"
 
-
 # ---------------------------------#
 #              CONFIG              #
 # ---------------------------------#
@@ -73,7 +72,15 @@ class Controller:
         self.mqtt = MQTTModule(
             device_id = DEVICE_ID,
             subscriptions = [
-                ALL_TOPICS
+                TOPIC_MICROPHONE,
+                TOPIC_LIGHT,
+                TOPIC_TEMPERATURE,
+                TOPIC_FAN_STATE,
+                TOPIC_HEATER_STATE,
+                TOPIC_MOTOR_STATE,
+                TOPIC_SPEAKER_STATE,
+                TOPIC_LAMP_STATE,
+                TOPIC_PARENT_CONTROL
             ]
         )
         self.mqtt._on_message = self._on_message
