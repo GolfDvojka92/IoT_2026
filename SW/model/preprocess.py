@@ -1,22 +1,38 @@
 """
-PIPELINE OVERVIEW:
+Data preprocessing pipeline for baby cry detection model.
+ 
+OVERVIEW OF THE PIPELINE:
+=========================
+This script:
+1. Reads annotation files (TSV format) that describe when/where baby cries occur
+2. Loads corresponding WAV audio files from disk
+3. Extracts the relevant audio segments using timestamps
+4. Converts audio waveforms into numerical features using signal processing
+5. Saves features as NumPy arrays (.npz files) for fast ML training
+ 
 
-1. Loads TSV annotation files (metadata about audio segments)
-2. Reads corresponding WAV audio files from dataset folders
-3. Cuts audio into segments using onset/offset timestamps
-4. Extracts features:
-   - Mel spectrogram (frequency + time representation of sound)
-   - MFCC (compact representation of audio characteristics)
-5. Saves everything as NumPy arrays (.npz files) for ML training
-
-Expected dataset structure:
-dataset/train/
-dataset/validation/
-dataset/test/
-development set/train.tsv
-development set/validation.tsv
-evaluation set/test.tsv
+WHY PREPROCESSING?
+===================
+Raw audio waveforms are huge and raw. Machine learning models work better with
+processed features that highlight important characteristics. We use:
+- Mel Spectrogram: visual representation showing which frequencies are loud at each moment
+- MFCC: compact summary of how the audio "sounds" (similar to how humans perceive sound)
+ 
+EXPECTED DIRECTORY STRUCTURE:
+=============================
+dataset/
+├── train/              # Training samples (audio + features)
+├── validation/         # Validation samples for hyperparameter tuning
+└── test/              # Test samples for final evaluation
+ 
+development set/
+├── train.tsv          # Annotations: filename, label, start_time, end_time
+└── validation.tsv
+ 
+evaluation set/
+└── test.tsv           # Test annotations
 """
+
 
 # ── Standard libraries ────────────────────────────────────────────────────────
 import os                      # used for file paths and checking file existence
@@ -26,8 +42,11 @@ import librosa                 # main library for audio processing
 import logging                 # used for printing progress and debugging info
 from pathlib import Path       # modern way to handle file paths (not heavily used here)
 
-# ── Logging setup ──────────────────────────────────────────────────────────────
-# This defines how logs will look in the terminal
+# ── CONFIGURE LOGGING ────────────────────────────────────────────────────────
+# Logging helps us track what the script is doing:
+# - INFO level: general progress messages
+# - WARNING level: something went wrong but we continue
+# - ERROR level: serious problems
 logging.basicConfig(level=logging.INFO, format="%(levelname)s | %(message)s")
 log = logging.getLogger(__name__)
 
@@ -40,25 +59,37 @@ SAMPLE_RATE = 22050
 SEGMENT_DURATION = 1.0
 
 # Number of Mel frequency bands (controls frequency resolution)
-# Think of this as dividing sound into 64 frequency “bins”
+# Mel scale = human perception of pitch (not linear frequency)
+# We divide the audio spectrum into 64 bands following human hearing
+# Each band represents different frequencies of interest
 N_MELS = 64
 
-# Number of MFCC coefficients (compressed representation of sound)
-# MFCC = compact "fingerprint" of sound that describes its tone and frequency pattern.
-# Used to represent audio in a small number of meaningful features for ML models.
+# Number of MFCC (Mel Frequency Cepstral Coefficient) features
+# MFCC = compact representation of audio characteristics
+# Like a "fingerprint" that captures:
+#   - Frequency content
+#   - Harmonic structure
+#   - Formants (peaks in frequency response)
+# Used in speech/cry recognition because it mimics human perception
+
 N_MFCC = 40
 
-# Hop length = how far we move each step when analyzing audio
-# Smaller = more detailed time resolution
+# Hop length: how far we move the analysis window when processing audio
+# Smaller hop = more time resolution (more frames) but slower processing
+# hop_length=512 at 22050 Hz = move every ~23 milliseconds
 HOP_LENGTH = 512
 
-# FFT window size = how big each analysis window is in samples
-# Controls frequency resolution of spectrogram
+# FFT window size: size of each analysis window
+# Larger = better frequency resolution, worse time resolution
+# Smaller = better time resolution, worse frequency resolution
+# 1024 is a good compromise for detecting baby cries
 N_FFT = 1024
 
 # ── DATASET SPLITS CONFIGURATION ──────────────────────────────────────────────
-# Each split has:
-# (TSV annotation file, folder with WAV audio files)
+# Define the three splits (train/validation/test) and their locations
+# Each tuple contains:
+#   - Path to TSV annotation file (describes when baby cries occur)
+#   - Path to folder with corresponding WAV audio files
 SPLITS = {
     "train":      ("development set/train.tsv",      "dataset/train"),
     "validation": ("development set/validation.tsv", "dataset/validation"),
@@ -66,28 +97,59 @@ SPLITS = {
 }
 
 # ── LABEL ENCODING ─────────────────────────────────────────────────────────────
-# Machine learning models cannot use text labels, so we convert them to numbers:
-# BabyCry - 1 (positive class we want to detect)
-# Other   - 0 (everything else)
+# Machine learning models need numerical inputs, not text.
+# We convert text labels to integers:
+#   "BabyCry" → 1  (positive class: what we want to detect)
+#   "Other"   → 0  (negative class: everything else)
 LABEL_MAP = {"BabyCry": 1, "Other": 0}
 
 # ── FEATURE EXTRACTION FUNCTION ───────────────────────────────────────────────
 def extract_features(y: np.ndarray, sr: int) -> np.ndarray:
     """
-    Converts raw audio signal into ML-ready numerical features.
-
-    Input:
-        y  → raw audio waveform (array of sound samples)
-        sr → sampling rate
-
-    Output:
-        2D feature matrix of shape:
-        (N_MELS + N_MFCC, time_frames)
+    Convert raw audio signal into machine learning features.
+    
+    This is the core of feature engineering. We transform the raw waveform
+    into representations that highlight relevant audio characteristics.
+    
+    INPUT:
+    ------
+    y  : np.ndarray
+        Raw audio waveform (1D array of audio samples)
+        Example: [0.001, -0.002, 0.003, ...] representing sound pressure
+    sr : int
+        Sample rate (samples per second)
+        We assume sr = SAMPLE_RATE (22050)
+    
+    OUTPUT:
+    -------
+    combined : np.ndarray of shape (104, time_frames)
+        Feature matrix combining Mel spectrogram + MFCC
+        - Rows: 104 features (64 Mel + 40 MFCC)
+        - Columns: time frames (~44 for 1-second audio)
+    
+    WHY THESE FEATURES?
+    -------------------
+    1. Mel Spectrogram:
+       - Shows frequency content over time (like a waterfall plot)
+       - Mel scale mimics human hearing (we hear pitch logarithmically)
+       - Baby cries have distinctive frequency patterns we want to detect
+    
+    2. MFCC:
+       - Compresses the spectrogram into 40 key numbers
+       - Captures the "shape" and "quality" of the sound
+       - Similar to cepstral analysis used in speech recognition
+       - Much more compact than raw spectrogram (64 vs 40 features)
     """
 
-    # ── MEL SPECTROGRAM ───────────────────────────────────────────────────────
-    # Converts audio into a "visual representation" of sound energy
-    # Rows = frequencies, columns = time
+    # ── STEP 1: COMPUTE MEL SPECTROGRAM ──────────────────────────────────────
+    # Librosa's melspectrogram does:
+    # 1. Divide audio into overlapping windows (using FFT)
+    # 2. Compute power spectrum for each window
+    # 3. Map frequencies to Mel scale (human perception)
+    # 4. Produce a 2D "image" where:
+    #    - Rows = frequency bands
+    #    - Columns = time frames
+
     mel = librosa.feature.melspectrogram(
         y=y,
         sr=sr,
@@ -96,13 +158,21 @@ def extract_features(y: np.ndarray, sr: int) -> np.ndarray:
         n_mels=N_MELS
     )
 
-    # Convert power values to decibels (log scale)
-    # This makes values more similar to how humans perceive sound
+    # Convert power values to decibels (dB)
+    # dB = 10 * log10(power)
+    # Why? Because:
+    # - Human hearing is logarithmic (we perceive volume logarithmically)
+    # - Decibels compress the range of values (easier for ML models)
+    # - Makes quiet and loud sounds more comparable in scale
+    # ref=np.max means: 0 dB = loudest point in the signal
     log_mel = librosa.power_to_db(mel, ref=np.max)
+    
+    # Now log_mel has shape (64, time_frames) with values roughly -80 to 0 dB
 
-    # ── MFCC FEATURES ──────────────────────────────────────────────────────────
-    # MFCC = compact summary of audio shape and tone
-    # Often used in speech/audio classification tasks
+    # ── STEP 2: COMPUTE MFCC FEATURES ────────────────────────────────────────
+    # MFCC = Mel Frequency Cepstral Coefficients
+    # These are derived from the Mel spectrogram through cepstral analysis
+    # Think of it as "compressed" information about the spectrogram shape
     mfcc = librosa.feature.mfcc(
         y=y,
         sr=sr,
@@ -111,10 +181,20 @@ def extract_features(y: np.ndarray, sr: int) -> np.ndarray:
         hop_length=HOP_LENGTH
     )
 
-    # ── COMBINE FEATURES ───────────────────────────────────────────────────────
-    # We stack Mel spectrogram + MFCC vertically
-    # Final shape = (64 + 40 = 104, time_frames)
+    # Now mfcc has shape (40, time_frames)
+    # Each row is a different MFCC coefficient:
+    # - mfcc[0] ≈ overall "loudness"
+    # - mfcc[1:] ≈ spectral "shape" and "quality"
+
+
+    # ── STEP 3: COMBINE FEATURES ─────────────────────────────────────────────
+    # Stack Mel spectrogram and MFCC vertically
+    # This creates a single feature matrix with both representations
     combined = np.concatenate([log_mel, mfcc], axis=0)
+
+    # Result shape: (64 + 40, time_frames) = (104, time_frames)
+    # Each column is a complete feature vector for one moment in time
+
 
     return combined
 
@@ -122,14 +202,29 @@ def extract_features(y: np.ndarray, sr: int) -> np.ndarray:
 # ── FIXING INPUT LENGTH ───────────────────────────────────────────────────────
 def pad_or_trim(feat: np.ndarray, target_frames: int) -> np.ndarray:
     """
-    Ensures all feature matrices have the same time dimension.
-
-    Why?
-    Machine learning models require fixed-size inputs.
-
-    If too short → we add zeros (silence padding)
-    If too long  → we cut extra frames (trim)
+    Ensure all feature matrices have exactly the same time dimension.
+    
+    WHY IS THIS NECESSARY?
+    ======================
+    Machine learning models require fixed-size inputs. Audio clips might be
+    slightly shorter or longer than expected, so we need to standardize:
+    - Too short? Add zeros (silence padding)
+    - Too long? Cut extra frames (trim)
+    
+    PARAMETERS:
+    -----------
+    feat : np.ndarray of shape (104, T)
+        Feature matrix with 104 features and T time frames
+    target_frames : int
+        Desired number of time frames
+        Typically ~44 for 1-second audio at our settings
+    
+    RETURNS:
+    --------
+    feat : np.ndarray of shape (104, target_frames)
+        Feature matrix resized to exactly target_frames
     """
+
 
     T = feat.shape[1]  # number of time frames in this sample
 
@@ -152,14 +247,34 @@ def pad_or_trim(feat: np.ndarray, target_frames: int) -> np.ndarray:
 # ── PROCESS ONE DATA SPLIT ───────────────────────────────────────────────────
 def process_split(tsv_path: str, audio_dir: str) -> tuple:
     """
-    Processes one dataset split (train / validation / test).
-
-    Steps:
-    - Read annotation file (TSV)
-    - Load audio files
-    - Extract labeled segments
-    - Convert audio → features
-    - Return ML-ready dataset (X, y)
+    Process one complete dataset split (train/validation/test).
+    
+    This is the main workhorse function that:
+    1. Reads which audio files contain baby cries (from TSV)
+    2. Loads those audio files
+    3. Extracts relevant time segments
+    4. Converts to features
+    5. Returns organized data for ML
+    
+    PARAMETERS:
+    -----------
+    tsv_path : str
+        Path to TSV annotation file
+        Format: filename | event_label | onset | offset
+        Example:
+          baby_001.wav | BabyCry | 1.5 | 2.8
+          baby_002.wav | Other   | 0.0 | 1.0
+    
+    audio_dir : str
+        Directory where audio WAV files are stored
+        Example: "dataset/train/"
+    
+    RETURNS:
+    --------
+    X : np.ndarray of shape (num_samples, 104, target_frames)
+        Features for all samples in this split
+    y : np.ndarray of shape (num_samples,)
+        Labels: 1 for BabyCry, 0 for Other
     """
 
     # Read TSV file into a table (DataFrame)
@@ -248,6 +363,21 @@ def process_split(tsv_path: str, audio_dir: str) -> tuple:
 
 # ── MAIN FUNCTION (RUNS EVERYTHING) ──────────────────────────────────────────
 def main():
+    """
+    Execute the complete preprocessing pipeline.
+    
+    This function:
+    1. Loops through each dataset split (train/validation/test)
+    2. Calls process_split() to convert audio → features
+    3. Saves results as .npz files for fast loading during training
+    
+    .npz Format:
+    ============
+    NumPy's compressed archive format. Stores multiple arrays in one file:
+    - Compressed: reduces file size to ~20-30% of original
+    - Fast loading: loads entire dataset into memory quickly
+    - Portable: works across different systems/Python versions
+    """
 
     # Loop over train / validation / test
     for split_name, (tsv_path, audio_dir) in SPLITS.items():

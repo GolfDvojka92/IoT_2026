@@ -11,8 +11,9 @@ PY = $(VENV)/bin/python3
 setup:
 	python3 -m venv venv
 	$(PY) -m pip install --upgrade pip
-	$(PY) -m pip install paho-mqtt
-
+	$(PY) -m pip install paho-mqtt librosa pandas sounddevice
+	$(PY) -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+	
 # =============================
 # MQTT BROKER
 # =============================

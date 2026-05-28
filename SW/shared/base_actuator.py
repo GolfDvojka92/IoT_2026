@@ -62,7 +62,6 @@ class BaseActuator(BaseDevice):
     # ------------------------------------------------ #
     #                   Idle loop                      #
     # ------------------------------------------------ #
-
     def _on_start(self):
         while self._running:
             time.sleep(1)
@@ -70,7 +69,6 @@ class BaseActuator(BaseDevice):
     # ------------------------------------------------ #
     #            Actuator-specific stop override       #
     # ------------------------------------------------ #
-
     def stop(self):
         print(f"[{self.DEVICE_ID}] Stopping...")
         self._running = False

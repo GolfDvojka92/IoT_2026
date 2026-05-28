@@ -33,22 +33,41 @@ env/
 Thumbs.db
 
 # =========================
-# MQTT / runtime artifacts (ako dodaš kasnije)
+# ML models
 # =========================
-*.db
-*.sqlite
-*.sqlite3
+*.pt
+*.pth
+*.ckpt
 
 # =========================
-# build / cache
+# Datasets / features
+# =========================
+*.npz
+*.npy
+
+# =========================
+# Audio data
+# =========================
+*.wav
+*.mp3
+*.flac
+*.ogg
+
+# =========================
+# Build / packaging
 # =========================
 build/
 dist/
 *.egg-info/
 
 # =========================
-# project-specific (optional safety)
+# Runtime / DB
 # =========================
-*.jpg
-*.png
-*.bin
+*.db
+*.sqlite
+*.sqlite3
+
+# =========================
+# Jupyter
+# =========================
+.ipynb_checkpoints/

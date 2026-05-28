@@ -27,6 +27,7 @@ class BaseSensor(BaseDevice):
 
     def _read(self):
         raise NotImplementedError
+    
 
     def _build_payload(self, value) -> dict:
         raise NotImplementedError

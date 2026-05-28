@@ -6,7 +6,7 @@ import paho.mqtt.client as mqtt
 from shared.mqtt_module import MQTTModule
 from shared.ssdp_module import SSDPModule
 
-MAX_AGE             = 120        # in full implementation all devices should get their max_age, this is done for simplicity
+MAX_AGE             = 30        # in full implementation all devices should get their max_age, this is done for simplicity
 
 # Subscribes to
 ALL_TOPICS          = "baby/#"
