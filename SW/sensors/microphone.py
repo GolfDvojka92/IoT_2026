@@ -8,11 +8,11 @@ from shared.base_sensor import BaseSensor
 from model.infer import load_model, predict_file
 
 TOPIC_READING    = "baby/sensor/microphone"
-TOPIC_STATE = "baby/sensor/microphone/state"
+TOPIC_STATE      = "baby/sensor/microphone/state"
 
 DEVICE_ID        = "microphone_01"
 PUBLISH_INTERVAL = 10
-DEVICE_TYPE      = "urn:babymonitor:device:Uknwon:1"
+DEVICE_TYPE      = "urn:babymonitor:device:Microphone:1"
 DEVICE_LOCATION  = "http://192.168.1.10:8080/description.xml"
 
 CHECKPOINT       = "model/baby_cry_detector_model.pt"

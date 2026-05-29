@@ -82,7 +82,7 @@ run-all:
 
 	gnome-terminal -- bash -c "$(PY) -m parent.parent; exec bash"
 
-	sleep 2
+	sleep 3
 	gnome-terminal -- bash -c "$(PY) controller.py; exec bash"
 
 # =============================
@@ -93,6 +93,7 @@ stop-all:
 	# Kill all background execution scripts mapping modules or main scripts
 	pkill -9 -f "sensors\." || true
 	pkill -9 -f "actuators\." || true
+	pkill -9 -f "parent\." || true
 	pkill -9 -f "controller.py" || true
 	@echo "All processes stopped."
 
