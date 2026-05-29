@@ -68,7 +68,6 @@ class SSDPModule:
 
         print(f"[{self.device_id}] SSDP NOTIFY sent (ssdp:byebye)")
 
-
     """
         Sends an SSDP M-SEARCH request to discover devices.
 

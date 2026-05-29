@@ -2,7 +2,7 @@ import time
 from shared.base_sensor import BaseSensor
 
 TOPIC_READING    = "baby/sensor/temperature"
-TOPIC_STATE = "baby/sensor/temperature/state"
+TOPIC_STATE      = "baby/sensor/temperature/state"
 
 DEVICE_ID        = "temperature_sensor_01"
 PUBLISH_INTERVAL = 10
@@ -24,6 +24,7 @@ class TemperatureSensor(BaseSensor):
 
     def _build_payload(self, value: float) -> dict:
         return {
+            "usn":         self.usn,   
             "device_id":   self.DEVICE_ID,
             "temperature": value,
             "unit":        "C",

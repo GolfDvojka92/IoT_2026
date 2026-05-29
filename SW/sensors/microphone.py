@@ -12,7 +12,7 @@ TOPIC_STATE = "baby/sensor/microphone/state"
 
 DEVICE_ID        = "microphone_01"
 PUBLISH_INTERVAL = 10
-DEVICE_TYPE      = "urn:babymonitor:device:Microphone:1"
+DEVICE_TYPE      = "urn:babymonitor:device:Uknwon:1"
 DEVICE_LOCATION  = "http://192.168.1.10:8080/description.xml"
 
 CHECKPOINT       = "model/baby_cry_detector_model.pt"
@@ -53,21 +53,24 @@ class Microphone(BaseSensor):
         )
 
         audio, sr = librosa.load(_wav_path, sr=None, mono=True)
-        sd.play(audio, sr)
-        sd.wait()
-
+        try:
+            sd.play(audio, sr)
+            sd.wait()
+        finally:
+            sd.stop()
+        
         if not result or result.get("prediction") == "Uknown":
             return "Other"
 
         return result["prediction"]     # "BabyCry" or "Other"
 
-    def _build_payload(self, value) -> dict:
+    def _build_payload(self, value):
         return {
+            "usn":       self.usn,   
             "device_id": self.DEVICE_ID,
             "sound":     value,
             "timestamp": time.time()
         }
-
 
 if __name__ == "__main__":
     sensor = Microphone()

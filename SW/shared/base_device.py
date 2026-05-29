@@ -34,6 +34,8 @@ class BaseDevice:
             location    = self.DEVICE_LOCATION
         )
 
+        self.usn = f"uuid:{self.DEVICE_ID}::{self.DEVICE_TYPE}"
+
     # ------------------------------------------------ #
     #            Hook that subclasses override          #
     # ------------------------------------------------ #
@@ -57,7 +59,7 @@ class BaseDevice:
 
         self.mqtt.publish(
             topic   = self.TOPIC_STATE,
-            payload = {"device_id": self.DEVICE_ID, "status": "online"},
+            payload = { "usn": self.usn, "device_id": self.DEVICE_ID, "status": "online" },
             retain  = True
         )
 
@@ -70,7 +72,7 @@ class BaseDevice:
 
         self.mqtt.publish(
             topic   = self.TOPIC_STATE,
-            payload = {"device_id": self.DEVICE_ID, "status": "offline"},
+            payload = { "usn": self.usn, "device_id": self.DEVICE_ID, "status": "offline" },
             retain  = True
         )
 

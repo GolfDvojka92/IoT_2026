@@ -24,6 +24,7 @@ class LightSensor(BaseSensor):
 
     def _build_payload(self, value: float) -> dict:
         return {
+            "usn":       self.usn,   
             "device_id": self.DEVICE_ID,
             "light":     value,
             "unit":      "lux",
