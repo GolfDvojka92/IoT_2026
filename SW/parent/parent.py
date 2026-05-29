@@ -22,6 +22,7 @@ class Parent(BaseActuator):
         super().__init__()
         # Hook into on_connect to subscribe to extra topics after connection
         _original_on_connect = self.mqtt._on_connect
+        
 
         def _on_connect_extended(client, userdata, flags, rc):
             _original_on_connect(client, userdata, flags, rc)

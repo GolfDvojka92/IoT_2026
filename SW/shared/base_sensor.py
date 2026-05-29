@@ -22,7 +22,7 @@ class BaseSensor(BaseDevice):
         super().__init__(subscriptions=[])
 
     # ------------------------------------------------ #
-    #         Methods that subclasses implement         #
+    #         Methods that subclasses implement        #
     # ------------------------------------------------ #
     def _read(self):
         raise NotImplementedError
@@ -34,7 +34,6 @@ class BaseSensor(BaseDevice):
     # ------------------------------------------------ #
     #                  Reading loop                    #
     # ------------------------------------------------ #
-
     def _on_start(self):
         while self._running:
             value = self._read()

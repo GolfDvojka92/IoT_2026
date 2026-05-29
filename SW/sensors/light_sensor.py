@@ -1,9 +1,10 @@
+from datetime import datetime
 import random
 import time
 from shared.base_sensor import BaseSensor
 
 TOPIC_READING    = "baby/sensor/light"
-TOPIC_STATE      ="baby/sensor/light/state"
+TOPIC_STATE      = "baby/sensor/light/state"
 DEVICE_ID        = "light_sensor_01"
 PUBLISH_INTERVAL = 10
 DEVICE_TYPE      = "urn:babymonitor:device:LightSensor:1"
@@ -28,7 +29,7 @@ class LightSensor(BaseSensor):
             "device_id": self.DEVICE_ID,
             "light":     value,
             "unit":      "lux",
-            "timestamp": time.time()
+            "timestamp": datetime.now().isoformat()
         }
 
 

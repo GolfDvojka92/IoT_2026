@@ -69,6 +69,8 @@ ALLOWED_DEVICE_TYPES = (
 class Controller:
 
     def __init__(self):
+        self.usn = f"uuid:{DEVICE_ID}::{DEVICE_TYPE}"
+
         self.device_status         = {}   # usn -> "online" | "offline" | "unavailable"
         self.last_seen             = {}   # usn -> datetime
         self.unauthorized_attempts = {}   # nt  -> attempt count
@@ -90,7 +92,15 @@ class Controller:
                 TOPIC_PARENT_STATE
             ]
         )
-        self.mqtt._on_message = self._on_message
+        self.mqtt._custom_on_message = self._on_message
+
+        # TODOO: DEFINE ALL NEEDED HANDLERS
+        self.handlers = {
+            TOPIC_MICROPHONE :      self._handle_microphone,
+            TOPIC_TEMPERATURE:      self._handle_temperature,
+            TOPIC_LIGHT :           self._handle_light,
+            TOPIC_PARENT_CONTROL :  self._handle_parent
+        }
 
         # SSDP
         self.ssdp = SSDPModule(
@@ -100,6 +110,7 @@ class Controller:
         )
         self.ssdp._handle_ssdp_message = self._handle_ssdp_message
 
+
     def _on_message(self, client, userdata, msg):
         try:
             payload = json.loads(msg.payload.decode())
@@ -107,6 +118,7 @@ class Controller:
             usn = payload.get("usn")
             if not usn:
                 return  # Ignore broken messages
+            topic = msg.topic
 
             # Ignore messages from unknown devices
             with self.lock:
@@ -118,12 +130,42 @@ class Controller:
 
             print(f"[MQTT] {usn} -> {payload}")
 
+            handler = self.handlers.get(topic)
+            if handler:
+                handler(payload)
+            else:
+                print(f"[MQTT] No handler for topic: {topic}")
+
         except Exception as e:
             print("Error:", e)
+
+    def _handle_microphone(self, payload):
+        sound = payload.get("sound")
+
+        if sound == "BabyCry":
+            print(f"[ACTION] Cry detected -> turning ON speaker")
+            self.mqtt.publish(
+                TOPIC_SPEAKER_CMD,
+                {
+                    "usn":       self.usn,   
+                    "device_id": DEVICE_ID,
+                    "cmd":       "ON",
+                    "timestamp": datetime.now().isoformat()
+                }
+            )
+
+    def _handle_temperature(self, payload):
+        print("TODOO")
+
+    def _handle_light(self, payload):
+        print("TODOO")
+
+    def _handle_parent(self, payload):
+        print("TODOO")
+
     # ------------------------------------------------------------------ #
     #  Status report                                                     #
     # ------------------------------------------------------------------ #
-
     def get_status_report(self) -> dict:
         """Returns a dict of all known devices grouped by status."""
         with self.lock:

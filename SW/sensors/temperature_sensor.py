@@ -1,3 +1,4 @@
+from datetime import datetime
 import time
 from shared.base_sensor import BaseSensor
 
@@ -28,7 +29,7 @@ class TemperatureSensor(BaseSensor):
             "device_id":   self.DEVICE_ID,
             "temperature": value,
             "unit":        "C",
-            "timestamp":   time.time()
+            "timestamp": datetime.now().isoformat()
         }
 
 

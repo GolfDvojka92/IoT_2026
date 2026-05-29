@@ -1,3 +1,4 @@
+from datetime import datetime
 import random
 import librosa
 import sounddevice as sd
@@ -69,7 +70,7 @@ class Microphone(BaseSensor):
             "usn":       self.usn,   
             "device_id": self.DEVICE_ID,
             "sound":     value,
-            "timestamp": time.time()
+            "timestamp": datetime.now().isoformat()
         }
 
 if __name__ == "__main__":

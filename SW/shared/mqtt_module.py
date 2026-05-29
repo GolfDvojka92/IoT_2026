@@ -16,8 +16,8 @@ class MQTTModule:
         # MQTT callback wiring: paho.mqtt library has empty callback functions meant to be populated in implementation
         self.client.on_connect    = self._on_connect
         self.client.on_disconnect = self._on_disconnect
-        self.client.on_message    = self._on_message
-
+        self._custom_on_message = None
+        self.client.on_message = self._on_message
     # ------------------------------------------------ #
     #               Callback overrides                 #
     # ------------------------------------------------ #
@@ -38,6 +38,9 @@ class MQTTModule:
         payload = msg.payload.decode("utf-8")
         print(f"[{self.device_id}] Message on '{msg.topic}': {payload}")
 
+        if self._custom_on_message:
+            self._custom_on_message(client, userdata, msg)
+            
     # ------------------------------------------------ #
     #                   Public API                     #
     # ------------------------------------------------ #

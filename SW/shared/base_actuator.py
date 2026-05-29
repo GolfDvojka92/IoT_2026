@@ -20,23 +20,25 @@ class BaseActuator(BaseDevice):
     TOPIC_CMD      = NotImplemented
     VALID_COMMANDS = ("ON", "OFF")
     LABEL          = "ACTUATOR"
-
+        
     def __init__(self):
         super().__init__(subscriptions=[self.TOPIC_CMD])
         self.state = "OFF"
-        self.mqtt._on_message = self._on_message
+        self.mqtt._custom_on_message = self._on_message
+
 
     # ------------------------------------------------ #
     #       Methods that subclasses may override        #
     # ------------------------------------------------ #
     def _apply_command(self, command: str):
-        """Applies a command. Override for additional logic (e.g. GPIO)."""
+        """Applies a command. Override for additional logic"""
         self.state = command
 
     def _on_message(self, client, userdata, msg):
         try:
             payload = json.loads(msg.payload.decode())
-            command = payload.get("state")
+           
+            command = payload.get("cmd")
             print(f"[{self.LABEL}] Command received: {command}")
 
             if command in self.VALID_COMMANDS:
@@ -49,7 +51,6 @@ class BaseActuator(BaseDevice):
     # ------------------------------------------------ #
     #                 Publish state                    #
     # ------------------------------------------------ #
-
     def publish_state(self):
         payload = {
             "device_id": self.DEVICE_ID,
