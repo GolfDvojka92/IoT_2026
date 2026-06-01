@@ -17,10 +17,18 @@ def main(args):
     data_path = os.path.join(workspace, 'dataset', data_type)
     os.makedirs(data_path, exist_ok=True)
 
-    if(data_type=='train' or 'validation'):
-        csv_path = os.path.join(workspace, 'development set','{}.tsv'.format(data_type))
-    if(data_type=='test'):
-        csv_path = os.path.join(workspace, 'evaluation set','{}.tsv'.format(data_type))
+    if data_type in ['train', 'validation']:
+        csv_path = os.path.join(
+            workspace,
+            'development set',
+            f'{data_type}.tsv'
+        )
+    elif data_type == 'test':
+        csv_path = os.path.join(
+            workspace,
+            'evaluation set',
+            f'{data_type}.tsv'
+        )
    
     df = pd.read_csv(csv_path, sep='\t')
     print(df)

@@ -20,7 +20,7 @@ TOPIC_FAN_TYPE        = "urn:babymonitor:device:Fan:1"
 TOPIC_HEATER_TYPE     = "urn:babymonitor:device:Heater:1"
 TOPIC_SPEAKER_TYPE    = "urn:babymonitor:device:Speaker:1"
 TOPIC_LAMP_TYPE       = "urn:babymonitor:device:Lamp:1"
-TOPIC_MOTOR_TYPE      = "urn:babymonitor:device:Toy:1"
+TOPIC_TOY_TYPE      = "urn:babymonitor:device:Toy:1"
 TOPIC_PARENT_TYPE     = "urn:babymonitor:device:Parent:1"
 
 # Subscribes to
@@ -30,7 +30,7 @@ TOPIC_TEMPERATURE     = "baby/sensor/temperature"
 TOPIC_PARENT_CONTROL  = "baby/parent/control"
 TOPIC_FAN_STATE       = "baby/actuator/fan/state"
 TOPIC_HEATER_STATE    = "baby/actuator/heater/state"
-TOPIC_MOTOR_STATE     = "baby/actuator/motor/state"
+TOPIC_TOY_STATE       = "baby/actuator/toy/state"
 TOPIC_SPEAKER_STATE   = "baby/actuator/speaker/state"
 TOPIC_LAMP_STATE      = "baby/actuator/lamp/state"
 TOPIC_PARENT_STATE    = "baby/parent/control/state"
@@ -38,7 +38,7 @@ TOPIC_PARENT_STATE    = "baby/parent/control/state"
 # Publishes to
 TOPIC_FAN_CMD         = "baby/actuator/fan/cmd"
 TOPIC_HEATER_CMD      = "baby/actuator/heater/cmd"
-TOPIC_MOTOR_CMD       = "baby/actuator/motor/cmd"
+TOPIC_TOY_CMD         = "baby/actuator/toy/cmd"
 TOPIC_SPEAKER_CMD     = "baby/actuator/speaker/cmd"
 TOPIC_LAMP_CMD        = "baby/actuator/lamp/cmd"
 
@@ -56,7 +56,7 @@ DEVICE_LOCATION     = "http://localhost/description.xml"   # placeholder
 ALLOWED_DEVICE_TYPES = (
     TOPIC_FAN_TYPE,
     TOPIC_HEATER_TYPE,
-    TOPIC_MOTOR_TYPE,
+    TOPIC_TOY_TYPE,
     TOPIC_SPEAKER_TYPE,
     TOPIC_LAMP_TYPE,
     TOPIC_LIGHT_TYPE,
@@ -86,7 +86,7 @@ class Controller:
                 TOPIC_TEMPERATURE,
                 TOPIC_FAN_STATE,
                 TOPIC_HEATER_STATE,
-                TOPIC_MOTOR_STATE,
+                TOPIC_TOY_STATE,
                 TOPIC_SPEAKER_STATE,
                 TOPIC_LAMP_STATE,
                 TOPIC_PARENT_STATE
@@ -146,6 +146,17 @@ class Controller:
             print(f"[ACTION] Cry detected -> turning ON speaker")
             self.mqtt.publish(
                 TOPIC_SPEAKER_CMD,
+                {
+                    "usn":       self.usn,   
+                    "device_id": DEVICE_ID,
+                    "cmd":       "ON",
+                    "timestamp": datetime.now().isoformat()
+                }
+            )
+
+            print(f"[ACTION] Cry detected -> turning ON toy")
+            self.mqtt.publish(
+                TOPIC_TOY_CMD,
                 {
                     "usn":       self.usn,   
                     "device_id": DEVICE_ID,

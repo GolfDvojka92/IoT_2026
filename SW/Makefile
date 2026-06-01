@@ -11,7 +11,7 @@ PY = $(VENV)/bin/python3
 setup:
 	python3 -m venv venv
 	$(PY) -m pip install --upgrade pip
-	$(PY) -m pip install paho-mqtt librosa pandas sounddevice
+	$(PY) -m pip install paho-mqtt librosa pandas sounddevice tqdm yt-dlp
 	$(PY) -m pip install torch --index-url https://download.pytorch.org/whl/cpu
 	
 # =============================
@@ -20,6 +20,24 @@ setup:
 broker:
 	@echo "Using system Mosquitto broker (port 1883)"
 	@echo "Start it with: sudo systemctl start mosquitto"
+	
+# =============================
+# DATASET DOWNLOAD
+# =============================
+download-dataset-train:
+	$(PY) model/download_audioset_baby_cry_dataset.py \
+		--workspace model \
+		--data_type train
+
+download-dataset-validation:
+	$(PY) model/download_audioset_baby_cry_dataset.py \
+		--workspace model \
+		--data_type validation
+
+download-dataset-test:
+	$(PY) model/download_audioset_baby_cry_dataset.py \
+		--workspace model \
+		--data_type test
 
 # =============================
 # CONTROLLER
