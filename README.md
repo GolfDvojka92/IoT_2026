@@ -88,8 +88,11 @@ This launches:
 * parent controller
 * main controller
 
-Each component opens in a separate gnome-terminal window. Execution order is:
-actuators -> sensors -> parent -> controller (after short delay)
+Each component opens in a separate gnome-terminal window. 
+Execution order is:
+```bash
+actuators → sensors → parent → controller (after short delay)
+```
 
 ---
 
