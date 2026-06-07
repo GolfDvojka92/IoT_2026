@@ -71,9 +71,10 @@ class Controller:
     def __init__(self):
         self.usn = f"uuid:{DEVICE_ID}::{DEVICE_TYPE}"
 
-        self.device_status         = {}   # usn -> "online" | "offline" | "unavailable"
-        self.last_seen             = {}   # usn -> datetime
-        self.unauthorized_attempts = {}   # nt  -> attempt count
+        self.device_status         = {}                 # usn -> "online" | "offline" | "unavailable"
+        self.last_seen             = {}                 # usn -> datetime
+        self.unauthorized_attempts = {}                 # nt  -> attempt count
+        self.last_commands         = {}                 # topic -> last cmd
         self.lock                  = threading.Lock()
 
         # MQTT client
@@ -139,31 +140,39 @@ class Controller:
         except Exception as e:
             print("Error:", e)
 
+    # Helper function used as FSM -  don't send command if it's the same as the last one
+    def _publish_if_changed(self, topic, cmd):
+        key = topic
+
+        if self.last_commands.get(key) == cmd:
+            return  
+
+        self.last_commands[key] = cmd
+
+        self.mqtt.publish(
+            topic,
+            {
+                "usn": self.usn,
+                "device_id": DEVICE_ID,
+                "cmd": cmd,
+                "timestamp": datetime.now().isoformat()
+            }
+        )
+
     def _handle_microphone(self, payload):
         sound = payload.get("sound")
 
         if sound == "BabyCry":
-            print(f"[ACTION] Cry detected -> turning ON speaker")
-            self.mqtt.publish(
-                TOPIC_SPEAKER_CMD,
-                {
-                    "usn":       self.usn,   
-                    "device_id": DEVICE_ID,
-                    "cmd":       "ON",
-                    "timestamp": datetime.now().isoformat()
-                }
-            )
+            print("[ACTION] Cry detected -> ON speaker + toy")
 
-            print(f"[ACTION] Cry detected -> turning ON toy")
-            self.mqtt.publish(
-                TOPIC_TOY_CMD,
-                {
-                    "usn":       self.usn,   
-                    "device_id": DEVICE_ID,
-                    "cmd":       "ON",
-                    "timestamp": datetime.now().isoformat()
-                }
-            )
+            self._publish_if_changed(TOPIC_SPEAKER_CMD, "ON")
+            self._publish_if_changed(TOPIC_TOY_CMD, "ON")
+
+        else:
+            print("[ACTION] No cry -> OFF speaker + toy")
+
+            self._publish_if_changed(TOPIC_SPEAKER_CMD, "OFF")
+            self._publish_if_changed(TOPIC_TOY_CMD, "OFF")
 
     def _handle_temperature(self, payload):
         print("TODOO")

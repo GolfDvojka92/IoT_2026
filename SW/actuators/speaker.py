@@ -1,4 +1,6 @@
 from shared.base_actuator import BaseActuator
+import os
+import pygame
 
 class Speaker(BaseActuator):
     DEVICE_ID       = "speaker_01"
@@ -13,22 +15,42 @@ class Speaker(BaseActuator):
     def __init__(self):
         super().__init__()
 
+        pygame.mixer.init()
+
+        self.music_path = os.path.join(
+            os.path.dirname(__file__),
+            "..",
+            "music",
+            "music-box.mp3"
+        )
+
+        self.is_playing = False
+
     def _apply_command(self, command: str):
         self.state = command
 
         if command == "ON":
-            # TODOO: PLAY WAV
-            print("[SPEAKER] Playing sound")
-           
+            if not self.is_playing:
+                print("[SPEAKER] Playing sound")
+
+                pygame.mixer.music.load(self.music_path)
+                pygame.mixer.music.play(-1)  # -1 = loop (background)
+
+                self.is_playing = True
+
         elif command == "OFF":
-            print("[SPEAKER] Stopping sound")
-          
+            if self.is_playing:
+                print("[SPEAKER] Stopping sound")
+
+                pygame.mixer.music.stop()
+
+                self.is_playing = False
+
 
 if __name__ == "__main__":
     device = Speaker()
 
     try:
         device.start()
-
     except KeyboardInterrupt:
         device.stop()

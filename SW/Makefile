@@ -13,13 +13,19 @@ setup:
 	$(PY) -m pip install --upgrade pip
 	$(PY) -m pip install paho-mqtt librosa pandas sounddevice tqdm yt-dlp
 	$(PY) -m pip install torch --index-url https://download.pytorch.org/whl/cpu
+	$(PY) -m pip install pygame
 	
 # =============================
 # MQTT BROKER
 # =============================
 broker:
-	@echo "Using system Mosquitto broker (port 1883)"
-	@echo "Start it with: sudo systemctl start mosquitto"
+	@echo "Starting Mosquitto broker..."
+	systemctl is-active --quiet mosquitto || sudo systemctl start mosquitto
+	@echo "Mosquitto running on port 1883"
+	
+stop-broker:
+	sudo systemctl stop mosquitto
+	@echo "Mosquitto broker stopped"
 	
 # =============================
 # DATASET DOWNLOAD
@@ -50,7 +56,6 @@ controller:
 # =============================
 parent:
 	$(PY) -m parent.parent
-
 
 # =============================
 # SENSORS
