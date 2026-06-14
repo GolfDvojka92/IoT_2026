@@ -1,14 +1,15 @@
 from datetime import datetime
-import time
 from shared.base_sensor import BaseSensor
+import threading
+import os
 
-TOPIC_READING    = "baby/sensor/temperature"
-TOPIC_STATE      = "baby/sensor/temperature/state"
+TOPIC_READING       = "baby/sensor/temperature"
+TOPIC_STATE         = "baby/sensor/temperature/state"
 
-DEVICE_ID        = "temperature_sensor_01"
-PUBLISH_INTERVAL = 10
-DEVICE_TYPE      = "urn:babymonitor:device:TemperatureSensor:1"
-DEVICE_LOCATION  = "http://192.168.1.10:8080/description.xml"
+DEVICE_ID           = "temperature_sensor_01"
+PUBLISH_INTERVAL    = 10
+DEVICE_TYPE         = "urn:babymonitor:device:TemperatureSensor:1"
+DEVICE_LOCATION     = "http://192.168.1.10:8080/description.xml"
 
 class TemperatureSensor(BaseSensor):
 
@@ -18,19 +19,58 @@ class TemperatureSensor(BaseSensor):
     TOPIC_READING    = TOPIC_READING
     PUBLISH_INTERVAL = PUBLISH_INTERVAL
     TOPIC_STATE      = TOPIC_STATE
+
+    def __init__(self):
+        super().__init__()
+        self.reading = 22.5
+
+
+    def _start_test_input(self):
+        # Starts a background thread that listens for typed commands during testing.
+        # Runs alongside the main reading loop without blocking it.
+        thread = threading.Thread(target=self._test_input_loop, daemon=True)
+        thread.start()
+
+    def _test_input_loop(self):
+        print(f"[{DEVICE_ID}] Test mode active. Commands: 'set <value>', 'status', 'quit'")
+        while self._running:
+            try:
+                command = input().strip()
+
+                if command.startswith("set "):
+                    try:
+                        self.reading = float(command.split(" ")[1])
+                        print(f"[{DEVICE_ID}] Reading set to {self.reading}°C")
+                    except (IndexError, ValueError):
+                        print(f"[{DEVICE_ID}] Usage: set <number>")
+
+                elif command == "status":
+                    print(f"[{DEVICE_ID}] Current reading: {self.reading}")
+
+                elif command == "quit":
+                    self.stop()
+                    os._exit(0)
+
+            except EOFError:
+                break
     
     def _read(self) -> float:
-        # TODO: replace with actual sensor reading
-        return 22.5  # placeholder
+        return self.reading
 
     def _build_payload(self, value: float) -> dict:
         return {
-            "usn":         self.usn,   
-            "device_id":   self.DEVICE_ID,
-            "temperature": value,
-            "unit":        "C",
-            "timestamp": datetime.now().isoformat()
+            "usn":          self.usn,   
+            "device_id":    self.DEVICE_ID,
+            "temperature":  value,
+            "unit":         "C",
+            "timestamp":    datetime.now().isoformat()
         }
+
+    # daemon needs to be started before the _on_start call
+    def _on_start(self):
+        self._start_test_input()
+        return super()._on_start()
+
 
 
 if __name__ == "__main__":
