@@ -24,7 +24,7 @@ class BaseActuator(BaseDevice):
     def __init__(self):
         super().__init__(subscriptions=[self.TOPIC_CMD])
         self.state = "OFF"
-        self.mqtt._custom_on_message = self._on_message
+        self.mqtt.client.on_message = self._on_message
 
 
     # ------------------------------------------------ #

@@ -93,7 +93,8 @@ class Controller:
                 TOPIC_PARENT_STATE
             ]
         )
-        self.mqtt._custom_on_message = self._on_message
+
+        self.mqtt.client.on_message = self._on_message
 
         # TODOO: DEFINE ALL NEEDED HANDLERS
         self.handlers = {
@@ -175,7 +176,21 @@ class Controller:
             self._publish_if_changed(TOPIC_TOY_CMD, "OFF")
 
     def _handle_temperature(self, payload):
-        print("TODOO")
+        current_temp = payload.get("temperature")
+        print(f"[DEBUG] Current temp: {current_temp}")
+        if current_temp <= 18:
+            print("[ACTION] Low room temperature detected -> ON heater")
+            self._publish_if_changed(TOPIC_HEATER_CMD, "ON")
+            self._publish_if_changed(TOPIC_FAN_CMD, "OFF")
+        elif current_temp >= 26:
+            print("[ACTION] High room temperature detected -> ON fan")
+            self._publish_if_changed(TOPIC_HEATER_CMD, "OFF")
+            self._publish_if_changed(TOPIC_FAN_CMD, "ON")
+        else:
+            if current_temp >= 21 and current_temp <= 23:
+                print("[ACTION] Target room temperature reached -> OFF fan, OFF heater")
+                self._publish_if_changed(TOPIC_HEATER_CMD, "OFF")
+                self._publish_if_changed(TOPIC_FAN_CMD, "OFF")
 
     def _handle_light(self, payload):
         print("TODOO")

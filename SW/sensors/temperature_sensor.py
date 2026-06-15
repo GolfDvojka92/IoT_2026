@@ -1,4 +1,5 @@
 from datetime import datetime
+from time import sleep
 from shared.base_sensor import BaseSensor
 import threading
 import os
@@ -10,6 +11,9 @@ DEVICE_ID           = "temperature_sensor_01"
 PUBLISH_INTERVAL    = 10
 DEVICE_TYPE         = "urn:babymonitor:device:TemperatureSensor:1"
 DEVICE_LOCATION     = "http://192.168.1.10:8080/description.xml"
+
+TOPIC_FAN_STATE     = "baby/actuator/fan/state"
+TOPIC_HEATER_STATE     = "baby/actuator/heater/state"
 
 class TemperatureSensor(BaseSensor):
 
@@ -23,7 +27,25 @@ class TemperatureSensor(BaseSensor):
     def __init__(self):
         super().__init__()
         self.reading = 22.5
+        self.states = {
+            TOPIC_FAN_STATE: False,
+            TOPIC_HEATER_STATE: False
+        }
+        self.mqtt.client.on_message = self._on_message
 
+    def _start_temp_sim(self):
+        # Starts a background thread that simulates the room cooling down or heating up from the fan or heater
+        # Runs alongside the main reading loop without blocking it.
+        thread = threading.Thread(target=self._temp_sim, daemon=True)
+        thread.start()
+
+    def _temp_sim(self):
+        while True:
+            if self.states[TOPIC_FAN_STATE]:
+                self.reading = round(self.reading - 0.1, 1)
+            elif self.states[TOPIC_HEATER_STATE]:
+                self.reading = round(self.reading + 0.1, 1)
+            sleep(0.4)
 
     def _start_test_input(self):
         # Starts a background thread that listens for typed commands during testing.
@@ -32,7 +54,7 @@ class TemperatureSensor(BaseSensor):
         thread.start()
 
     def _test_input_loop(self):
-        print(f"[{DEVICE_ID}] Test mode active. Commands: 'set <value>', 'status', 'quit'")
+        print(f"[{DEVICE_ID}] Test mode active. Commands: 'set <value>', 'status', 'quit', 'fan <state>', 'heater <state>'")
         while self._running:
             try:
                 command = input().strip()
@@ -43,7 +65,24 @@ class TemperatureSensor(BaseSensor):
                         print(f"[{DEVICE_ID}] Reading set to {self.reading}°C")
                     except (IndexError, ValueError):
                         print(f"[{DEVICE_ID}] Usage: set <number>")
-
+                elif command.startswith("fan "):
+                    state = command.split(" ")[1]
+                    if state in {"on", "off"}:
+                        self.states[TOPIC_FAN_STATE] = state == "on"
+                        if self.states[TOPIC_FAN_STATE]:
+                            self.states[TOPIC_HEATER_STATE] = False
+                        print(f"[{DEVICE_ID}] Simulating fan {state}")
+                    else:
+                        print(f"[{DEVICE_ID}] Usage: fan <state>")
+                elif command.startswith("heater "):
+                    state = command.split(" ")[1]
+                    if state in {"on", "off"}:
+                        self.states[TOPIC_HEATER_STATE] = state == "on"
+                        if self.states[TOPIC_HEATER_STATE]:
+                            self.states[TOPIC_FAN_STATE] = False
+                        print(f"[{DEVICE_ID}] Simulating heater {state}")
+                    else:
+                        print(f"[{DEVICE_ID}] Usage: heater <state>")
                 elif command == "status":
                     print(f"[{DEVICE_ID}] Current reading: {self.reading}")
 
@@ -66,12 +105,22 @@ class TemperatureSensor(BaseSensor):
             "timestamp":    datetime.now().isoformat()
         }
 
-    # daemon needs to be started before the _on_start call
+    # Daemons need to be started before the _on_start call
     def _on_start(self):
+        self._start_temp_sim()
         self._start_test_input()
+        self.mqtt.client.subscribe("baby/actuator/fan/state")
+        self.mqtt.client.subscribe("baby/actuator/heater/state")
         return super()._on_start()
 
-
+    def _on_message(self, client, userdata, msg):
+        payload = msg.payload.decode("utf-8")
+        topic = msg.topic
+        if topic in {TOPIC_FAN_STATE, TOPIC_HEATER_STATE}:
+            if "ON" in payload:
+                self.states[topic] = True
+            else:
+                self.states[topic] = False
 
 if __name__ == "__main__":
     sensor = TemperatureSensor()
