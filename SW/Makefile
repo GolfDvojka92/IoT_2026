@@ -9,6 +9,8 @@ PY = $(VENV)/bin/python3
 # ENVIRONMENT SETUP 
 # =============================
 setup:
+	sudo apt update
+	sudo apt install -y mosquitto portaudio19-dev
 	python3 -m venv venv
 	$(PY) -m pip install --upgrade pip
 	$(PY) -m pip install paho-mqtt librosa pandas sounddevice tqdm yt-dlp

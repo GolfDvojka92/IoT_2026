@@ -1,4 +1,5 @@
 from shared.base_actuator import BaseActuator
+import json
 
 TOPIC_PARENT_CMD   = "baby/parent/control"
 TOPIC_PARENT_STATE = "baby/parent/state"
@@ -20,19 +21,39 @@ class Parent(BaseActuator):
 
     def __init__(self):
         super().__init__()
-        # Hook into on_connect to subscribe to extra topics after connection
-        _original_on_connect = self.mqtt._on_connect
-        
+        original_on_connect = self.mqtt.client.on_connect
+        def on_connect_extended(client, userdata, flags, rc):
+            original_on_connect(client, userdata, flags, rc)
 
-        def _on_connect_extended(client, userdata, flags, rc):
-            _original_on_connect(client, userdata, flags, rc)
             if rc == 0:
                 client.subscribe(TOPIC_PARENT_NOTIF)
                 client.subscribe(TOPIC_PARENT_ALERT)
+
                 print(f"[{LABEL}] Subscribed → {TOPIC_PARENT_NOTIF}")
                 print(f"[{LABEL}] Subscribed → {TOPIC_PARENT_ALERT}")
+        self.mqtt.client.on_connect = on_connect_extended
 
-        self.mqtt.client.on_connect = _on_connect_extended
+    def _on_message(self, client, userdata, msg):
+        try:
+            payload = json.loads(msg.payload.decode())
+            if msg.topic == TOPIC_PARENT_NOTIF:
+                print(f"[PARENT NOTIFICATION] {payload}")
+                return
+            if msg.topic == TOPIC_PARENT_ALERT:
+                print(f"[PARENT ALERT] {payload}")
+                return
+            if msg.topic == TOPIC_PARENT_CMD:
+                print(f"[PARENT CMD OBSERVED] {payload}")
+                return
+        except Exception as e:
+            print(f"[{LABEL}] Error: {e}")
+
+    def _on_start(self):
+        print(f"[{LABEL}] Parent device online")
+        print(f"[{LABEL}] USN: {self.usn}")
+        print(f"[{LABEL}] Android app should send this usn in every command")
+        return super()._on_start()
+
 
 if __name__ == "__main__":
     parent = Parent()

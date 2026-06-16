@@ -112,7 +112,15 @@ class Controller:
         )
         self.ssdp._handle_ssdp_message = self._handle_ssdp_message
 
+        self.parent_override = False
+        self.current_temp = None
+        self.fan_state = "OFF"
+        self.heater_state = "OFF"
+        self.toy_state = "OFF"
+        self.speaker_state = "OFF"
+        self.lamp_state = "OFF"
         self.lamp_brightness = 0
+        self.last_notification = None
 
     def _on_message(self, client, userdata, msg):
         try:
@@ -161,40 +169,100 @@ class Controller:
             }
         )
 
+    def _publish_parent_state(self):
+        self.mqtt.publish(
+            TOPIC_PARENT_STATE,
+            {
+                "usn": self.usn,
+                "temperature": self.current_temp,
+                "fan": self.fan_state,
+                "heater": self.heater_state,
+                "toy": self.toy_state,
+                "music": self.speaker_state,
+                "lamp": self.lamp_state,
+                "brightness": self.lamp_brightness,
+                "parent_override": self.parent_override,
+                "timestamp": datetime.now().isoformat()
+            }
+        )
+
+    def _publish_notification(self, message):
+        if self.last_notification == message:
+            return
+
+        self.last_notification = message
+        self.mqtt.publish(TOPIC_PARENT_NOTIF, message)
+
     def _handle_microphone(self, payload):
         sound = payload.get("sound")
 
+        if self.parent_override:
+            print("[MIC] Parent override active")
+            self._publish_parent_state()
+            return
+        
         if sound == "BabyCry":
+            self.speaker_state = "ON"
+            self.toy_state = "ON"
             print("[ACTION] Cry detected -> ON speaker + toy")
 
             self._publish_if_changed(TOPIC_SPEAKER_CMD, "ON")
             self._publish_if_changed(TOPIC_TOY_CMD, "ON")
+            self.self._publish_notification("Baby is crying!")
 
         else:
+            self.speaker_state = "OFF"
+            self.toy_state = "OFF"
             print("[ACTION] No cry -> OFF speaker + toy")
 
             self._publish_if_changed(TOPIC_SPEAKER_CMD, "OFF")
             self._publish_if_changed(TOPIC_TOY_CMD, "OFF")
+            self.self._publish_notification("Baby stopped crying.")
 
-    def _handle_temperature(self, payload):
+        self._publish_parent_state()
+
+    def _handle_temperature(self, payload):        
         current_temp = payload.get("temperature")
+
+        self.current_temp = current_temp
+        if self.parent_override:
+            print("[TEMP] Parent override active")
+            self._publish_parent_state()
+            return  
+        
         print(f"[DEBUG] Current temp: {current_temp}")
+        if current_temp >= 30:
+            self._publish_notification("Temperature too high!")
+        elif current_temp <= 15:
+            self._publish_notification("Temperature too low!")
+
         if current_temp <= 18:
+            self.heater_state = "ON"
+            self.fan_state = "OFF"
             print("[ACTION] Low room temperature detected -> ON heater")
             self._publish_if_changed(TOPIC_HEATER_CMD, "ON")
             self._publish_if_changed(TOPIC_FAN_CMD, "OFF")
         elif current_temp >= 26:
+            self.heater_state = "OFF"
+            self.fan_state = "ON"
             print("[ACTION] High room temperature detected -> ON fan")
             self._publish_if_changed(TOPIC_HEATER_CMD, "OFF")
             self._publish_if_changed(TOPIC_FAN_CMD, "ON")
         else:
             if current_temp >= 21 and current_temp <= 23:
+                self.heater_state = "OFF"
+                self.fan_state = "OFF"
                 print("[ACTION] Target room temperature reached -> OFF fan, OFF heater")
                 self._publish_if_changed(TOPIC_HEATER_CMD, "OFF")
                 self._publish_if_changed(TOPIC_FAN_CMD, "OFF")
 
     def _handle_light(self, payload):
         light = payload.get("light")
+
+        if self.parent_override:
+            print("[LIGHT] Parent override active")
+            self._publish_parent_state()
+            return
 
         if light < 0:
             light = 0
@@ -206,7 +274,13 @@ class Controller:
             brightness = 0
         if brightness > 100:
             brightness = 100
+
         self.lamp_brightness = brightness
+        self.lamp_state = "ON" if self.lamp_brightness > 0 else "OFF"
+        if self.lamp_brightness >= 80:
+            self._publish_notification("Night mode active, lamp is bright.")
+        elif self.lamp_brightness == 0:
+            self._publish_notification("Daylight detected, lamp is off.")
 
         print(f"[DEBUG] Current light: {light} lux")
         print(f"[ACTION] Set lamp brightness -> {self.lamp_brightness}%")
@@ -222,8 +296,78 @@ class Controller:
             }
         )
 
+        self._publish_parent_state()
+
     def _handle_parent(self, payload):
-        print("TODOO")
+        cmd = payload.get("cmd")
+        value = payload.get("value")
+
+        print(f"[PARENT] Command: {cmd}")
+
+        if cmd == "AUTO" or cmd == "LAMP_AUTO":
+            self.parent_override = False
+            print("[PARENT] Auto mode enabled")
+            self._publish_parent_state()
+            return
+
+        if cmd != "GET_TEMPERATURE":
+            self.parent_override = True
+
+        if cmd == "FAN_ON":
+            self.fan_state = "ON"
+            self.heater_state = "OFF"
+            self._publish_if_changed(TOPIC_HEATER_CMD, "OFF")
+            self._publish_if_changed(TOPIC_FAN_CMD, "ON")
+
+        elif cmd == "FAN_OFF":
+            self.fan_state = "OFF"
+            self._publish_if_changed(TOPIC_FAN_CMD, "OFF")
+
+        elif cmd == "HEATER_ON":
+            self.heater_state = "ON"
+            self.fan_state = "OFF"
+            self._publish_if_changed(TOPIC_FAN_CMD, "OFF")
+            self._publish_if_changed(TOPIC_HEATER_CMD, "ON")
+
+        elif cmd == "HEATER_OFF":
+            self.heater_state = "OFF"
+            self._publish_if_changed(TOPIC_HEATER_CMD, "OFF")
+
+        elif cmd == "GET_TEMPERATURE":
+            self._publish_parent_state()
+
+        elif cmd == "TOY_ON":
+            self.toy_state = "ON"
+            self._publish_if_changed(TOPIC_TOY_CMD, "ON")
+
+        elif cmd == "TOY_OFF":
+            self.toy_state = "OFF"
+            self._publish_if_changed(TOPIC_TOY_CMD, "OFF")
+
+        elif cmd == "MUSIC_ON":
+            self.speaker_state = "ON"
+            self._publish_if_changed(TOPIC_SPEAKER_CMD, "ON")
+
+        elif cmd == "MUSIC_OFF":
+            self.speaker_state = "OFF"
+            self._publish_if_changed(TOPIC_SPEAKER_CMD, "OFF")
+
+        elif cmd == "SET_LAMP_BRIGHTNESS":
+            self.lamp_brightness = max(0, min(100, int(value)))
+            self.lamp_state = "ON" if self.lamp_brightness > 0 else "OFF"
+
+            self.mqtt.publish(
+                TOPIC_LAMP_CMD,
+                {
+                    "usn": self.usn,
+                    "device_id": DEVICE_ID,
+                    "cmd": "SET_BRIGHTNESS",
+                    "value": self.lamp_brightness,
+                    "timestamp": datetime.now().isoformat()
+                }
+            )
+        
+        self._publish_parent_state()
 
     # ------------------------------------------------------------------ #
     #  Status report                                                     #
@@ -275,6 +419,8 @@ class Controller:
                     if elapsed > MAX_AGE and self.device_status.get(usn) == "online":
                         self.device_status[usn] = "unavailable"
                         print(f"[controller] Device went unavailable (MAX_AGE expired): {usn}")
+                        device_name = usn.split("device:")[1].split(":")[0]
+                        self.mqtt.publish(TOPIC_PARENT_ALERT, f"Device unavailable: {device_name}")
             cycle += 1
             if cycle % STATUS_REPORT_INTERVAL_TICKS == 0:
                 self._print_status_report()
@@ -329,6 +475,8 @@ class Controller:
                     self.device_status[usn] = "offline"
                     self.last_seen.pop(usn, None)
                 print(f"[controller] Authorized device offline: {usn} at {addr[0]}")
+                device_name = usn.split("device:")[1].split(":")[0]
+                self.mqtt.publish(TOPIC_PARENT_ALERT, f"Device offline: {device_name}")
             else:
                 self._handle_unauthorized(nt, usn, addr, "byebye")
 
