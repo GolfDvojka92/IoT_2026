@@ -112,6 +112,7 @@ class Controller:
         )
         self.ssdp._handle_ssdp_message = self._handle_ssdp_message
 
+        self.lamp_brightness = 0
 
     def _on_message(self, client, userdata, msg):
         try:
@@ -193,7 +194,33 @@ class Controller:
                 self._publish_if_changed(TOPIC_FAN_CMD, "OFF")
 
     def _handle_light(self, payload):
-        print("TODOO")
+        light = payload.get("light")
+
+        if light < 0:
+            light = 0
+        if light > 900:
+            light = 900
+
+        brightness = int((900 - light) / 10)
+        if brightness < 0:
+            brightness = 0
+        if brightness > 100:
+            brightness = 100
+        self.lamp_brightness = brightness
+
+        print(f"[DEBUG] Current light: {light} lux")
+        print(f"[ACTION] Set lamp brightness -> {self.lamp_brightness}%")
+
+        self.mqtt.publish(
+            TOPIC_LAMP_CMD,
+            {
+                "usn": self.usn,
+                "device_id": DEVICE_ID,
+                "cmd": "SET_BRIGHTNESS",
+                "value": self.lamp_brightness,
+                "timestamp": datetime.now().isoformat()
+            }
+        )
 
     def _handle_parent(self, payload):
         print("TODOO")

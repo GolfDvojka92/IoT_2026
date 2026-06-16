@@ -1,6 +1,4 @@
 from datetime import datetime
-import random
-import time
 from shared.base_sensor import BaseSensor
 
 TOPIC_READING    = "baby/sensor/light"
@@ -11,7 +9,6 @@ DEVICE_TYPE      = "urn:babymonitor:device:LightSensor:1"
 DEVICE_LOCATION  = "http://192.168.1.10:8080/description.xml"
 
 class LightSensor(BaseSensor):
-
     DEVICE_ID        = DEVICE_ID
     DEVICE_TYPE      = DEVICE_TYPE
     DEVICE_LOCATION  = DEVICE_LOCATION
@@ -19,19 +16,30 @@ class LightSensor(BaseSensor):
     PUBLISH_INTERVAL = PUBLISH_INTERVAL
     TOPIC_STATE      = TOPIC_STATE
 
-    def _read(self) -> float:
-        # TODO: replace with actual sensor reading
-        return random.randint(0, 1000)  # placeholder
+    def __init__(self):
+        super().__init__()
+        self.light = 900
+        self.step = -50
 
-    def _build_payload(self, value: float) -> dict:
+    def _read(self):
+        self.light += self.step
+
+        if self.light <= 50:
+            self.light = 50
+            self.step = 50
+        elif self.light >= 900:
+            self.light = 900
+            self.step = -50
+        return self.light
+
+    def _build_payload(self, value):
         return {
-            "usn":       self.usn,   
+            "usn": self.usn,
             "device_id": self.DEVICE_ID,
-            "light":     value,
-            "unit":      "lux",
+            "light": value,
+            "unit": "lux",
             "timestamp": datetime.now().isoformat()
         }
-
 
 if __name__ == "__main__":
     sensor = LightSensor()
