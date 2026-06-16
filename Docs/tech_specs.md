@@ -485,18 +485,18 @@ Ensure coordinated operation between all subsystems
     - **SW-6.2.1.1**: Subscribe to all sensor topics  
     - **ARCH**:  
         - Logic engine subscribes to:  
-            - ``baby/sensor/temp``  
-            - ``baby/sensor/microphone``  
-            - ``baby/sensor/light``  
-            - other relevant sensors  
+             ``baby/sensor/temp``  
+             ``baby/sensor/microphone``  
+             ``baby/sensor/light``  
+             other relevant sensors  
         - It continuously monitors all events in real-time  
     - **SW-6.2.1.2**: Publish coordinated actuator commands  
     - **ARCH**:  
         - Based on event rules, publishes commands to:  
-            - ``baby/actuator/toy/cmd``  
-            - ``baby/actuator/speaker/cmd``  
-            - ``baby/actuator/lamp/cmd``  
-            - ``baby/actuator/heater/cmd`` / ``baby/actuator/fan/cmd``  
+             ``baby/actuator/toy/cmd``  
+             ``baby/actuator/speaker/cmd``  
+             ``baby/actuator/lamp/cmd``  
+             ``baby/actuator/heater/cmd`` / ``baby/actuator/fan/cmd``  
         - All commands are validated and rate-limited as needed  
 
 ### **SW-6.3**: Priority handling  
@@ -516,11 +516,11 @@ Ensure coordinated operation between all subsystems
 - **SW-6.4.2**: Feedback reporting  
 - **ARCH**:  
     - Current state of all actuators published periodically:  
-        - ``baby/actuator/toy/state``  
-        - ``baby/actuator/speaker/state``  
-        - ``baby/actuator/lamp/state``  
-        - ``baby/actuator/fan/state``  
-        - ``baby/actuator/heater/state``
+         ``baby/actuator/toy/state``  
+         ``baby/actuator/speaker/state``  
+         ``baby/actuator/lamp/state``  
+         ``baby/actuator/fan/state``  
+         ``baby/actuator/heater/state``
 
 ## SW-7: Parent Monitoring Application
 Provide remote monitoring and control of the Smart Baby Room system.
@@ -565,7 +565,7 @@ Provide remote monitoring and control of the Smart Baby Room system.
       - MUSIC_ON
       - MUSIC_OFF
     - Commands are published to:
-      - `baby/parent/control`
+       `baby/parent/control`
 
 ### **SW-7.4**: Lighting control
 - **SW-7.4.1**: Lighting status display
