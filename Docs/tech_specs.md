@@ -1,77 +1,126 @@
 # Smart Baby Monitoring Room  
 ## HLR: IoT implementation of a smart baby room designed for automatic parameter regulation and monitoring  
 ### MQTT Topic Structure Template  
-- Sensors publish &rarr; ``baby/sensor/<type>``  
-- Logic engine subscribes &rarr; ``baby/sensor/#``  
-- Actuator commands &rarr; ``baby/actuator/<device>/cmd``  
-- Actuator state feedback &rarr; ``baby/actuator/<device>/state``  
+- Sensors publish &rarr; ``baby/sensor/<type>`` 
+- Logic engine subscribes &rarr; ``baby/sensor/#`` 
+- Actuator commands &rarr; ``baby/actuator/<device>/cmd`` 
+- Actuator state feedback &rarr; ``baby/actuator/<device>/state`` 
 - Parent notifications &rarr; ``baby/parent/notifications``
 - Parent control commands &rarr; ``baby/parent/commands``
 
 ## SW-0: Network Discovery & Device Registration
-Enable automatic discovery of controller and IoT devices within the local network before operational communication is established 
 
-### **SW-0.1**: Device advertisement  
-- **SW-0.1.1**: Automatic presence announcement 
-    - **SW-0.1.1.1**: Each device announces its presence when joining the network 
-    - **ARCH**: 
-        - Sensors and actuators multicast an SSDP `NOTIFY (ssdp:alive)` message over UDP  
-        - Announcement includes:  
-            - unique device identifier  
-            - device type  
-            - location information  
-            - advertisement lifetime  
-        - This allows the controller and other network participants to detect newly available devices  
+Enable automatic discovery, authorization, registration and availability tracking of IoT devices within the local network before operational communication is established.
 
-- **SW-0.1.2**: Departure announcement 
-    - **SW-0.1.2.1**: Device announces shutdown before disconnecting 
-    - **ARCH**: 
-        - Before leaving the network, device multicasts `NOTIFY (ssdp:byebye)`  
-        - This informs the controller that the device is no longer available  
+### **SW-0.1**: Device advertisement
 
-### **SW-0.2**: Controller discovery procedure  
-- **SW-0.2.1**: Active device search 
-    - **SW-0.2.1.1**: Controller actively searches for available devices on the network 
-    - **ARCH**: 
-        - Controller multicasts an SSDP `M-SEARCH` request  
-        - Devices matching the search criteria respond with discovery information  
-        - Controller uses these responses to identify available sensors and actuators  
+- **SW-0.1.1**: Automatic presence announcement
+    - **SW-0.1.1.1**: Device startup advertisement
+    - **ARCH**:
+        - Upon startup, every sensor and actuator joins the SSDP multicast group.
+        - Each device periodically broadcasts an SSDP `NOTIFY (ssdp:alive)` message.
+        - Announcement includes:
+            - unique device identifier (USN)
+            - device type (NT)
+            - location information
+            - advertisement lifetime (`max-age`)
+        - This allows automatic discovery of devices currently present on the network.
 
-- **SW-0.2.2**: Passive discovery monitoring 
-    - **SW-0.2.2.1**: Controller continuously listens for SSDP announcements 
-    - **ARCH**: 
-        - Controller monitors SSDP multicast traffic  
-        - Newly advertised devices are detected dynamically  
-        - Device shutdown announcements are used to detect network departures  
+- **SW-0.1.2**: Periodic availability refresh
+    - **SW-0.1.2.1**: Continuous presence advertisement
+    - **ARCH**:
+        - Devices periodically retransmit `NOTIFY (ssdp:alive)` messages.
+        - Continuous advertisements refresh availability information maintained by the controller.
+        - Missing advertisements may indicate device or network failure.
 
-### **SW-0.3**: Device registration  
-- **SW-0.3.1**: Registration of discovered devices 
-    - **SW-0.3.1.1**: Controller stores information about available devices 
-    - **ARCH**: 
-        - After discovery, controller registers:  
-            - device identifier  
-            - device type  
-            - device availability state  
-        - Registered devices become available for system coordination and monitoring  
+- **SW-0.1.3**: Departure announcement
+    - **SW-0.1.3.1**: Device announces shutdown before disconnecting
+    - **ARCH**:
+        - Before leaving the network, the device multicasts `NOTIFY (ssdp:byebye)`.
+        - This informs the controller that the device is no longer available.
 
-- **SW-0.3.2**: Dynamic availability management 
-    - **SW-0.3.2.1**: System maintains updated device presence information 
-    - **ARCH**: 
-        - Devices announced with `ssdp:alive` are marked active  
-        - Devices announcing `ssdp:byebye` are marked inactive  
-        - Unexpected communication loss may also trigger device removal  
+### **SW-0.2**: Controller discovery procedure
 
-### **SW-0.4**: Operational communication bootstrap  
-- **SW-0.4.1**: Transition to MQTT communication 
-    - **SW-0.4.1.1**: After discovery, devices establish operational communication channels 
-    - **ARCH**: 
-        - SSDP is used only for discovery and network presence management  
-        - After successful discovery, devices exchange operational data using MQTT  
-        - MQTT channels are used for:  
-            - sensor telemetry  
-            - actuator commands  
-            - state reporting  
-            - alerts and notifications  
+- **SW-0.2.1**: Active device search
+    - **SW-0.2.1.1**: Controller actively searches for available devices on the network
+    - **ARCH**:
+        - During startup, the controller multicasts an SSDP `M-SEARCH` request.
+        - The search target is `ssdp:all`.
+        - Devices matching the search criteria respond with discovery information.
+        - The controller uses these responses to identify devices already present on the network before operational communication begins.
+
+- **SW-0.2.2**: Passive discovery monitoring
+    - **SW-0.2.2.1**: Controller continuously listens for SSDP announcements
+    - **ARCH**:
+        - Controller monitors SSDP multicast traffic.
+        - Newly advertised devices are detected dynamically through `ssdp:alive` messages.
+        - Device shutdown announcements are detected through `ssdp:byebye` messages.
+        - This enables runtime discovery without requiring controller restart.
+
+### **SW-0.3**: Device authorization and registration
+
+- **SW-0.3.1**: Authorized device validation
+    - **SW-0.3.1.1**: Verification of supported device types
+    - **ARCH**:
+        - The controller maintains a whitelist of supported device types.
+        - Only devices whose SSDP `NT` field matches a supported device type are accepted.
+        - Unsupported devices are ignored and not registered.
+
+- **SW-0.3.2**: Registration of discovered devices
+    - **SW-0.3.2.1**: Controller stores information about available devices
+    - **ARCH**:
+        - After discovery, the controller registers:
+            - device identifier (USN)
+            - device type (NT)
+            - device availability state
+            - last seen timestamp
+        - Registered devices become available for system coordination and monitoring.
+
+- **SW-0.3.3**: Unauthorized device detection
+    - **SW-0.3.3.1**: Monitoring of unsupported devices
+    - **ARCH**:
+        - Unauthorized SSDP announcements are logged.
+        - The controller maintains a counter of unauthorized discovery attempts.
+        - Repeated unauthorized announcements trigger an alert event for the parent subsystem.
+
+### **SW-0.4**: Dynamic availability management
+
+- **SW-0.4.1**: Online state management
+    - **SW-0.4.1.1**: Detection of active devices
+    - **ARCH**:
+        - Devices announced with `ssdp:alive` are marked as active (`ONLINE`).
+        - The controller updates the corresponding last seen timestamp.
+
+- **SW-0.4.2**: Offline state management
+    - **SW-0.4.2.1**: Detection of graceful device departure
+    - **ARCH**:
+        - Devices announcing `ssdp:byebye` are marked as inactive (`OFFLINE`).
+
+- **SW-0.4.3**: Unavailable device detection
+    - **SW-0.4.3.1**: Detection of unexpected communication loss
+    - **ARCH**:
+        - The controller periodically checks the activity of registered devices.
+        - If no valid SSDP or MQTT activity is received within the configured timeout period, the device is marked as `UNAVAILABLE`.
+        - This mechanism detects unexpected device failures and network disconnections.
+
+### **SW-0.5**: Operational communication bootstrap
+
+- **SW-0.5.1**: Transition to MQTT communication
+    - **SW-0.5.1.1**: Establishment of operational communication channels
+    - **ARCH**:
+        - SSDP is used only for:
+            - device discovery
+            - authorization
+            - registration
+            - availability tracking
+        - After successful discovery, devices establish operational communication using MQTT.
+        - MQTT channels are used for:
+            - sensor telemetry
+            - actuator commands
+            - state reporting
+            - alerts and notifications
+        - MQTT messages originating from devices that are not currently marked as `ONLINE` are ignored by the controller.
+
 
   
 ## SW-1: Environment & Microclimate Management  
