@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">Smart baby room</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="get_curr_tmp">Get current temperature</string>
+    <string name="temp">Temperature</string>
+    <string name="light">Light</string>
+    <string name="toy_music">Toy/Music</string>
+    <string name="auto">Return to AUTO mode</string>
+    <string name="notif">Notification: none</string>
+    <string name="alert">Alert: none</string>
+    <string name="light_control">Light Control</string>
+    <string name="lamp_off">Lamp: OFF</string>
+    <string name="brightness_0">Brightness: 0%</string>
+    <string name="set_brightness">Set brightness</string>
+    <string name="temperature2">Temperature</string>
+    <string name="current_temp">Current temperature: — °C</string>
+    <string name="refresh_temp">Refresh temperature</string>
+    <string name="heater2">Heater: OFF</string>
+    <string name="heater_on2">Turn Heater ON</string>
+    <string name="fan">Fan: OFF</string>
+    <string name="fan_on">Turn Fan ON</string>
+    <string name="notification_prefix">Notification: %1$s</string>
+    <string name="alert_prefix">Alert: %1$s</string>
+    <string name="Temp_req">Current temperature: requested…</string>
+    <string name="current_temperature">Current temperature: %1$.1f °C</string>
+    <string name="fan_state">Fan: %1$s</string>
+    <string name="heater_state">Heater: %1$s</string>
+    <string name="brightness_value">Brightness: %1$d%%</string>
+    <string name="lamp_state">Lamp: %1$s</string>
+    <string name="lamp_on">Lamp: ON</string>
+    <string name="toy_state">Toy: %1$s</string>
+    <string name="music_state">Music: %1$s</string>
+</resources>

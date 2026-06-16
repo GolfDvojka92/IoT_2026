@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Toy / Music Control"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:padding="16dp"/>
+
+    <TextView
+        android:id="@+id/tvToyState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Toy: OFF"
+        android:textSize="20sp"
+        android:padding="16dp"/>
+
+    <Button
+        android:id="@+id/btnToyToggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Turn Toy ON" />
+
+    <TextView
+        android:id="@+id/tvMusicState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Music: OFF"
+        android:textSize="20sp"
+        android:padding="16dp"/>
+
+    <Button
+        android:id="@+id/btnMusicToggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Turn Music ON" />
+
+</LinearLayout>

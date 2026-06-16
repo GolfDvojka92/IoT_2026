@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/temperature2"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:gravity="center"
+        android:padding="16dp"/>
+
+    <TextView
+        android:id="@+id/tvCurrentTemperature"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/current_temp"
+        android:textSize="22sp"
+        android:gravity="center"
+        android:padding="10dp"/>
+
+    <Button
+        android:id="@+id/btnRefreshTemperature"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/refresh_temp" />
+
+    <TextView
+        android:id="@+id/tvHeaterState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/heater2"
+        android:textSize="20sp"
+        android:padding="10dp"/>
+
+    <Button
+        android:id="@+id/btnHeaterToggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/heater_on2" />
+
+    <TextView
+        android:id="@+id/tvFanState"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/fan"
+        android:textSize="20sp"
+        android:padding="10dp"/>
+
+    <Button
+        android:id="@+id/btnFanToggle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/fan_on" />
+
+
+</LinearLayout>
