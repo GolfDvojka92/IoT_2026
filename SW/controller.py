@@ -121,6 +121,7 @@ class Controller:
         self.lamp_state = "OFF"
         self.lamp_brightness = 0
         self.last_notification = None
+        self.baby_was_crying = False
 
     def _on_message(self, client, userdata, msg):
         try:
@@ -208,7 +209,10 @@ class Controller:
 
             self._publish_if_changed(TOPIC_SPEAKER_CMD, "ON")
             self._publish_if_changed(TOPIC_TOY_CMD, "ON")
-            self.self._publish_notification("Baby is crying!")
+
+            if not self.baby_was_crying:
+                self._publish_notification("Baby is crying!")
+                self.baby_was_crying = True
 
         else:
             self.speaker_state = "OFF"
@@ -217,7 +221,10 @@ class Controller:
 
             self._publish_if_changed(TOPIC_SPEAKER_CMD, "OFF")
             self._publish_if_changed(TOPIC_TOY_CMD, "OFF")
-            self.self._publish_notification("Baby stopped crying.")
+            
+            if self.baby_was_crying:
+                self._publish_notification("Baby stopped crying.")
+                self.baby_was_crying = False
 
         self._publish_parent_state()
 
